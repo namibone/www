@@ -1,7 +1,13 @@
-import { mkdir, writeFile, readFile, cp, readdir } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, cp, readdir, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { resolve, dirname, basename } from 'node:path';
+import assert from 'node:assert/strict';
 import sharp from 'sharp';
 
+// Only the generated dist directory immediately inside this checkout may be cleared.
+const output = resolve('dist');
+assert(dirname(output) === process.cwd() && basename(output) === 'dist');
+await rm(output, { recursive: true, force: true });
 await mkdir('dist/assets', { recursive: true });
 await cp('assets', 'dist/assets', { recursive: true });
 await cp('CNAME', 'dist/CNAME');
