@@ -1,27 +1,10 @@
 :root {
-  --color-ink: #183e40;
-  --color-muted: #506365;
-  --color-paper: #f8f6ef;
-  --color-white: #ffffff;
-  --color-sand: #eee9dd;
-  --color-line: #d8dcd4;
-  --color-ocean: #165b60;
-  --color-ocean-soft: #e5efeb;
-  --color-dune: #9e4828;
-  --color-dune-soft: #f6e6d9;
-  --color-focus: #075ec4;
-  --font-body: 'Segoe UI', Arial, sans-serif;
-  --font-display: Georgia, 'Times New Roman', serif;
-  --space-1: .25rem;
-  --space-2: .5rem;
-  --space-3: .75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4.5rem;
-  --radius-small: .5rem;
-  --radius-card: 1.25rem;
-  --radius-pill: 999px;
-  --content-width: 1200px;
+ --color-ink:#152d46; --color-muted:#526477; --color-paper:#f3f6f9; --color-white:#ffffff;
+ --color-line:#dbe3ea; --color-primary:#096b6d; --color-primary-hover:#075356; --color-primary-soft:#e3f3ef;
+ --color-warm:#8b4a0e; --color-warm-soft:#fff2d9; --color-blue:#265caf; --color-blue-soft:#edf3ff;
+ --color-danger:#b13636; --color-danger-soft:#fff0ef; --color-dark:#10283e; --color-dark-muted:#bfd0df;
+ --color-focus:#125ed2; --color-shadow:#142d4610;
+ --font-body:'Segoe UI',Arial,sans-serif; --font-display:'Segoe UI',Arial,sans-serif;
+ --space-1:.25rem; --space-2:.5rem; --space-3:.75rem; --space-4:1rem; --space-5:1.5rem; --space-6:2rem;
+ --radius-small:.5rem; --radius-card:.9rem; --radius-pill:99px; --content-width:1440px;
 }

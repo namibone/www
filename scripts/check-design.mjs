@@ -24,9 +24,10 @@ assert.equal((await read('dist/CNAME')).trim(),'onenam.africa');
 const files = (await readdir('dist')).filter(f=>f.endsWith('.html'));
 let total = 0;
 for (const file of [...files,...(await readdir('dist/assets')).map(f=>`assets/${f}`)]) total += (await stat(`dist/${file}`)).size;
-assert(total < 650_000, `Public page/assets budget exceeded: ${total} bytes`);
+assert(total < 650_000, `Complete prototype page/assets budget exceeded: ${total} bytes`);
 for (const file of files) {
   const $ = load(await read(`dist/${file}`));
+  assert((await stat(`dist/${file}`)).size < 40_000,`${file}: individual page exceeds 40 KB`);
   assert.equal($('html').attr('lang'),'en',`${file}: document language`);
   assert.equal($('h1').length,1,`${file}: exactly one h1`);
   assert.equal($('main#main').length,1,`${file}: main landmark`);
@@ -38,6 +39,9 @@ for (const file of files) {
   assert($('meta[name="description"]').attr('content'));
   assert($('a.skip-link[href="#main"]').length);
   assert($('footer').text().includes('Government affiliation and endorsement are not verified.'));
+  assert($('.prototype-bar').text().includes('No live government transactions.'));
+  assert($('nav[aria-label="Breadcrumb"]').length);
+  assert.equal($('input[type="file"],input[type="email"],input[type="password"],textarea').length,0,'Prototype must not collect private records');
   const ids = $('[id]').map((_,e)=>$(e).attr('id')).get();
   assert.equal(new Set(ids).size,ids.length,`${file}: duplicate IDs`);
   $('img').each((_,e)=>assert($(e).attr('alt') !== undefined,`${file}: image alt required`));
@@ -55,9 +59,14 @@ for (const file of files) {
     if (url.hash) { const other = load(await read(`dist${target}`)); assert(other(`[id="${url.hash.slice(1)}"]`).length,`${file}: broken anchor ${ref}`); }
   }
 }
-const home = load(await read('dist/index.html'));
-assert.equal(home('button.provider[disabled]').length,3,'All unconfigured providers must stay disabled');
-assert.equal(home('form').length,0,'No personal-data forms until authentication is configured');
+const signin = load(await read('dist/signin.html'));
+assert.equal(signin('button.provider[disabled]').length,3,'All unconfigured providers must stay disabled');
+const manifest=JSON.parse(await read('dist/page-manifest.json'));
+const offline=JSON.parse(await read('dist/offline-manifest.json'));
+for(const page of manifest){
+  assert.equal(offline.includes(page.path),page.offline,`Offline scope: ${page.path}`);
+}
+assert(offline.includes('/assets/data.js'),'Browser module dependency must be cached');
 const sitemap = load(await read('dist/sitemap.xml'),{xml:true});
 for (const f of files.filter(f=>f!=='404.html')) assert(sitemap('loc').toArray().some(e=>sitemap(e).text()===`https://onenam.africa/${f==='index.html'?'':f}`),`Sitemap missing ${f}`);
 const sw = await read('dist/sw.js');
@@ -72,6 +81,7 @@ const cacheCases = [
   ['/', 'GET', true], ['/privacy.html','GET',true], ['/assets/global.css','GET',true],
   ['/?code=sensitive','GET',false], ['/privacy.html?session=sensitive','GET',false],
   ['/auth/callback','GET',false], ['/api/session','GET',false], ['/unknown.html','GET',false],
+  ['/citizen-dashboard.html','GET',false], ['/staff-cases.html','GET',false], ['/payments.html','GET',false], ['/receipt.html','GET',false],
   ['/', 'POST', false], ['https://other.example/','GET',false],
 ];
 for (const [path,method,expected] of cacheCases) {
