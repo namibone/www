@@ -10,6 +10,8 @@ assert(dirname(output)===process.cwd()&&basename(output)==='dist');
 await rm(output,{recursive:true,force:true});
 await mkdir('dist/assets',{recursive:true});
 await cp('assets','dist/assets',{recursive:true});
+await mkdir('dist/wireframes',{recursive:true});
+for(const name of ['desktop.svg','mobile.svg'])await cp(`docs/wireframes/${name}`,`dist/wireframes/${name}`);
 await cp('CNAME','dist/CNAME');
 await writeFile('dist/.nojekyll','');
 const mark='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#10283e"/><path d="M15 46V18h8l18 20V18h8v28h-8L23 26v20Z" fill="#ffffff"/><path d="M15 50h34" stroke="#53b9ac" stroke-width="3"/></svg>';

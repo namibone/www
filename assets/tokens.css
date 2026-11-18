@@ -4,6 +4,10 @@
  --color-warm:#8b4a0e; --color-warm-soft:#fff2d9; --color-blue:#265caf; --color-blue-soft:#edf3ff;
  --color-danger:#b13636; --color-danger-soft:#fff0ef; --color-dark:#10283e; --color-dark-muted:#bfd0df;
  --color-focus:#125ed2; --color-shadow:#142d4610;
+ --color-sand:#f6f2e9; --color-sand-deep:#e9ddc9; --color-sand-soft:#fcfaf5;
+ --color-teal-ink:#124f50; --color-teal-soft:#e6eeE6; --color-terra:#87452d; --color-terra-soft:#f4e4d7;
+ --color-landscape-veil:#f6f2e9e8; --color-clear:#ffffff00; --color-avatar-shadow:#123c341b;
+ --color-flag-blue:#176090; --color-flag-red:#bb3540; --color-flag-green:#24724d; --color-flag-gold:#ba820d;
  --font-body:'Segoe UI',Arial,sans-serif; --font-display:'Segoe UI',Arial,sans-serif;
  --space-1:.25rem; --space-2:.5rem; --space-3:.75rem; --space-4:1rem; --space-5:1.5rem; --space-6:2rem;
  --radius-small:.5rem; --radius-card:.9rem; --radius-pill:99px; --content-width:1440px;

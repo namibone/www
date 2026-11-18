@@ -41,7 +41,13 @@ for (const file of files) {
   assert($('footer').text().includes('Government affiliation and endorsement are not verified.'));
   assert($('.prototype-bar').text().includes('No live government transactions.'));
   assert($('nav[aria-label="Breadcrumb"]').length);
-  assert.equal($('input[type="file"],input[type="email"],input[type="password"],textarea').length,0,'Prototype must not collect private records');
+  assert.equal($('input[type="file"],input[type="email"],input[type="password"],textarea:not(#companion-prompt)').length,0,'Prototype must not collect private records');
+  if(file==='index.html'){
+    assert.equal($('textarea#companion-prompt[maxlength="1000"]').length,1,'Home must offer the bounded conversation prompt');
+    assert.equal($('[data-companion-endpoint]').length,0,'Live AI must not be claimed before its backend is configured');
+    assert.equal($('script[src="/assets/companion.js"]').length,1,'Home companion module is required');
+    assert.equal($('[data-motion-toggle]').length,1,'Avatar animation requires a pause control');
+  }else assert.equal($('textarea').length,0,'Free-text prompts are limited to the companion home');
   const ids = $('[id]').map((_,e)=>$(e).attr('id')).get();
   assert.equal(new Set(ids).size,ids.length,`${file}: duplicate IDs`);
   $('img').each((_,e)=>assert($(e).attr('alt') !== undefined,`${file}: image alt required`));
