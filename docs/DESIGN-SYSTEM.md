@@ -14,6 +14,8 @@ Only tokens may introduce literal CSS colors or font families. Spacing/radius to
 
 `npm run check` builds the site, runs structural design checks and browser tests. The Pages deployment job has `needs: quality`, so failed checks prevent publication. GitHub Pages must use **GitHub Actions**, not a legacy branch publisher, for this deployment gate to be effective. Repository administrators can change workflow/settings; it is not an immutable policy.
 
+The main branch requires the GitHub Actions `Design and browser gate` check on an up-to-date branch, including for administrators. Force pushes and branch deletion are disabled. These protection settings were configured for the pilot release.
+
 Structural checks enforce shared styles, known color/font tokens, focus and reduced-motion rules, canonical domain, document language, one H1 and main landmark, icons/metadata, alt attributes, working local paths/anchors, no inline CSS/JS, no external runtime assets, honest disabled providers, sitemap coverage, offline allowlist boundaries and a 650,000-byte budget for public HTML and assets.
 
 Chromium, Firefox and WebKit tests check automated accessibility on all pages, dialog keyboard flow, provider disabled state and absence of third-party calls, 320/390/768/1440-pixel overflow, JavaScript-disabled navigation, reduced motion and offline reload/navigation. Screenshots are retained as CI artifacts. Visual review of screenshots remains necessary for subjective design quality. Automated checks are not proof of full accessibility conformance.

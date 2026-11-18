@@ -82,11 +82,6 @@ test('offline reload and navigation preserve only public content',async({page,co
   expect(keys.every(k=>!new URL(k).search)).toBe(true);
   const privateResponse = await page.evaluate(async()=>{try {return (await fetch('/auth/callback?code=example')).status;}catch{return 'offline';}});
   expect(privateResponse).toBe('offline');
-  await page.evaluate(async()=>{
-    for(const name of await caches.keys()) if(name.startsWith('onenam-')) await(await caches.open(name)).delete('/privacy.html');
-  });
-  await page.reload();
-  await expect(page.locator('h1')).toHaveText('A starting point, even offline.');
 });
 
 test('failed offline installation is explained without claiming a saved copy',async({page})=>{

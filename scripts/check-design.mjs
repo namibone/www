@@ -81,4 +81,19 @@ for (const [path,method,expected] of cacheCases) {
   assert.equal(intercepted,expected,`Offline cache boundary: ${method} ${path}`);
   if (response) await response;
 }
+// Force a genuine worker-network failure: browser offline emulation does not
+// consistently apply to worker-originated requests across browser engines.
+const failureHandlers = {};
+runInNewContext(sw, {
+  self: { location:{origin:'https://onenam.africa'}, addEventListener:(type,handler)=>{failureHandlers[type]=handler;} },
+  URL,
+  caches: { open:async()=>({match:async path=>path==='/offline.html'?new Response('offline guide'):undefined}) },
+  fetch:async()=>{throw new Error('simulated network failure');},
+});
+for (const [path,mode] of [['/privacy.html','navigate'],['/assets/app.js','cors']]) {
+  let response;
+  failureHandlers.fetch({request:{url:`https://onenam.africa${path}`,method:'GET',mode},respondWith:value=>{response=value;}});
+  if (mode === 'navigate') assert.equal(await (await response).text(),'offline guide');
+  else await assert.rejects(response,/simulated network failure/);
+}
 console.log(`Design gate passed: ${files.length} pages, shared tokens, links, metadata, honest auth, offline boundary; ${Math.round(total/1024)} KiB.`);

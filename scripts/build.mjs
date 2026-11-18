@@ -71,7 +71,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(caches.open(CACHE).then(async cache => {
     const saved = await cache.match(url.pathname);
     if (saved) return saved;
-    try { return await fetch(event.request); }
+    try { return await fetch(event.request, { cache: 'no-store' }); }
     catch (error) {
       if (event.request.mode === 'navigate') {
         const fallback = await cache.match('/offline.html');
