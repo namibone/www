@@ -15,7 +15,7 @@ const preferred=(navigator.languages||[navigator.language||'en']).map(x=>x.toLow
 function applyLocale(locale){
  const lang=Object.hasOwn(catalogs,locale)?locale:'en',strings=catalogs[lang];
  document.documentElement.lang=lang;select.value=lang;
- for(const el of document.querySelectorAll('[data-i18n]')){const key=el.dataset.i18n;if(strings[key])el.textContent=strings[key]}
+ for(const el of document.querySelectorAll('[data-i18n]')){const key=el.dataset.i18n;if(strings[key]){const label=[...el.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);if(label)label.textContent=strings[key];else el.textContent=strings[key]}}
  for(const el of document.querySelectorAll('[data-i18n-placeholder]')){const key=el.dataset.i18nPlaceholder;if(strings[key])el.setAttribute('placeholder',strings[key])}
  document.dispatchEvent(new CustomEvent('namibone:localechange',{detail:{locale:lang}}));
 }
