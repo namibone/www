@@ -17,6 +17,8 @@ Independent UX review also identified and verified these release fixes:
 
 Other verification found and fixed sitemap target spacing and narrow-screen table overflow. Tables now establish their own positioning context so hidden accessible labels do not expand the page outside the horizontally scrollable table. Recent requests sort by date, newest first.
 
+The first final PR run completed with 167 passes and one Firefox accessibility retry. Investigation identified a transient color-contrast failure while page-entry opacity was below 1. The follow-up removes text opacity animation while retaining a brief positional transition; text stays fully opaque and readable from the first frame. Publication was held for a fresh complete gate on that correction.
+
 The gate contains 46 all-page accessibility tests and 10 interaction/edge-case tests per browser, across Chromium, Firefox and WebKit. The authoritative final results are the PR and release workflow runs for the exact deployed commit. The initial local Firefox full run was stopped after host-dependent timeouts; this is not presented as a successful final run. Targeted local checks and visual screenshots supplement the clean CI run.
 
 This is not a claim that CodeRabbit re-reviewed the fixes, that a manual screen-reader conformance audit is complete, or that identity, government APIs, communications or real payments have been end-to-end tested. Those live integrations are not configured.
