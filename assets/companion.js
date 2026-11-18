@@ -1,4 +1,5 @@
 import {services} from './data.js';
+import {guideIntent} from './guided-dialogue.js';
 
 // Conversation content stays in memory. A configured API receives text only
 // after the person explicitly sends it; this module never stores or logs it.
@@ -76,7 +77,7 @@ function initialiseCompanion(root) {
     article.className = `companion-message ${role}`;
     const author = document.createElement('p');
     author.className = 'companion-message-author';
-    author.textContent = role === 'user' ? 'You' : label || 'OneNam · Service guide preview';
+    author.textContent = role === 'user' ? 'You' : label || 'NamibOne · Guided Companion';
     const content = document.createElement('p');
     content.className = 'companion-message-content';
     content.textContent = text;
@@ -176,9 +177,9 @@ function initialiseCompanion(root) {
     try {
       const endpoint = endpointURL();
       if (!endpoint || !navigator.onLine) {
-        const guidance = localGuidance(text);
-        appendMessage('assistant', guidance.text, guidance.links);
-        turns.push({role:'assistant',content:guidance.text});
+        const guidance = guideIntent(text,{locale:document.documentElement.lang});
+        appendMessage('assistant', guidance.reply, guidance.links);
+        turns.push({role:'assistant',content:guidance.reply});
         setStatus(navigator.onLine ? 'Service guide preview · No question was sent to an AI provider.' : 'You’re offline. Showing local service guidance; saved public pages remain available.');
       } else {
         const requestController = new AbortController();
@@ -193,7 +194,7 @@ function initialiseCompanion(root) {
         const data = await response.json();
         if (typeof data.reply !== 'string' || !data.reply.trim() || data.reply.length > 20_000) throw new Error('Invalid response');
         if (token !== generation) return;
-        appendMessage('assistant',data.reply,[],'OneNam · AI companion');
+        appendMessage('assistant',data.reply,[],'NamibOne · AI Companion');
         turns.push({role:'assistant',content:data.reply});
         setStatus('AI response received. Check important details with the responsible service.');
       }
