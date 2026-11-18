@@ -7,7 +7,7 @@ Prepared 18 November 2026 from the supplied NamibOne Companion reference. These 
 - `desktop.svg`: 1440 × 1000 annotated desktop composition with a 220 px navigation rail.
 - `mobile.svg`: 440 × 1040 annotated composition containing a 390 × 844 mobile viewport.
 
-The existing implementation uses **OneNam** at **onenam.africa**. These wireframes retain that working identity and domain. The supplied reference is named NamibOne. No domain or organisation migration is implied.
+The existing implementation uses **OneNam** at **namibone.com**. These wireframes retain that working identity and domain. The supplied reference is named NamibOne. No domain or organisation migration is implied.
 
 ## First arrival
 

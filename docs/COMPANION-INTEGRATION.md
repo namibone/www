@@ -4,7 +4,7 @@
 
 The landing experience is a functional **local service guide preview**. It routes questions to the existing catalogue, sample application tracker and payment preview. Replies disclose that they are catalogue guidance, not generated model answers. No typed question leaves the page in this mode. This distinction is deliberate: there is no live generative AI backend in this repository or deployment.
 
-The user-authorized first screen is implemented at `/`. The existing `onenam.africa` CNAME, OneNam identity, GitHub Pages deployment and service routes remain authoritative. The spoken `.com` name has not been treated as authorization to replace the configured domain.
+The user-authorized first screen is implemented at `/`. The [GitHub Pages deployment](https://github.com/namibone/www/actions/runs/44320432304) reports `https://namibone.com/`, and a direct HTTPS check on 18 November 2026 confirmed the companion page at that host. The CNAME, canonical metadata and sitemap now match that configured domain. The OneNam identity, GitHub Pages hosting and existing service routes are retained.
 
 ## Optional AI endpoint
 
