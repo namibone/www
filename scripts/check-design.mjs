@@ -35,7 +35,7 @@ for (const file of files) {
   assert.equal($('link[rel="icon"][type="image/svg+xml"]').length,1,`${file}: tab icon`);
   assert.equal($('style,[style],[onclick],script:not([src])').length,0,`${file}: no inline styling or scripts`);
   assert($('meta[http-equiv="Content-Security-Policy"]').attr('content').includes("form-action 'none'"));
-  assert($('title').text().includes('OneNam'));
+  assert($('title').text().includes('NamibOne'));
   assert($('meta[name="description"]').attr('content'));
   assert($('a.skip-link[href="#main"]').length);
   assert($('footer').text().includes('Government affiliation and endorsement are not verified.'));
