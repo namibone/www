@@ -19,8 +19,8 @@ postcss.parse(css).walkDecls(d => {
 assert(css.includes(':focus-visible'), 'Visible keyboard focus is required');
 assert(css.includes('prefers-reduced-motion: reduce'), 'Reduced motion support is required');
 assert(css.includes('max-width: 700px'), 'Mobile layout is required');
-assert.equal((await read('CNAME')).trim(),'onenam.africa','Preserve production domain');
-assert.equal((await read('dist/CNAME')).trim(),'onenam.africa');
+assert.equal((await read('CNAME')).trim(),'namibone.com','Preserve production domain');
+assert.equal((await read('dist/CNAME')).trim(),'namibone.com');
 const files = (await readdir('dist')).filter(f=>f.endsWith('.html'));
 let total = 0;
 for (const file of [...files,...(await readdir('dist/assets')).map(f=>`assets/${f}`)]) total += (await stat(`dist/${file}`)).size;
@@ -59,7 +59,7 @@ for (const file of files) {
       assert(el.tagName === 'a' || (el.tagName === 'link' && $(el).attr('rel') === 'canonical'),`${file}: no external runtime assets`);
       continue;
     }
-    const url = new URL(ref,`https://onenam.africa/${file === 'index.html'?'':file}`);
+    const url = new URL(ref,`https://namibone.com/${file === 'index.html'?'':file}`);
     const target = url.pathname === '/' ? '/index.html' : url.pathname;
     await stat(`dist${target}`);
     if (url.hash) { const other = load(await read(`dist${target}`)); assert(other(`[id="${url.hash.slice(1)}"]`).length,`${file}: broken anchor ${ref}`); }
@@ -74,11 +74,11 @@ for(const page of manifest){
 }
 assert(offline.includes('/assets/data.js'),'Browser module dependency must be cached');
 const sitemap = load(await read('dist/sitemap.xml'),{xml:true});
-for (const f of files.filter(f=>f!=='404.html')) assert(sitemap('loc').toArray().some(e=>sitemap(e).text()===`https://onenam.africa/${f==='index.html'?'':f}`),`Sitemap missing ${f}`);
+for (const f of files.filter(f=>f!=='404.html')) assert(sitemap('loc').toArray().some(e=>sitemap(e).text()===`https://namibone.com/${f==='index.html'?'':f}`),`Sitemap missing ${f}`);
 const sw = await read('dist/sw.js');
 const handlers = {};
 runInNewContext(sw, {
-  self: { location:{origin:'https://onenam.africa'}, addEventListener:(type,handler)=>{handlers[type]=handler;} },
+  self: { location:{origin:'https://namibone.com'}, addEventListener:(type,handler)=>{handlers[type]=handler;} },
   URL,
   caches: { open:async()=>({match:async()=>new Response('public page')}) },
   fetch:async()=>new Response('network'),
@@ -93,7 +93,7 @@ const cacheCases = [
 for (const [path,method,expected] of cacheCases) {
   let intercepted = false;
   let response;
-  handlers.fetch({request:{url:new URL(path,'https://onenam.africa').href,method},respondWith:value=>{intercepted=true;response=value;}});
+  handlers.fetch({request:{url:new URL(path,'https://namibone.com').href,method},respondWith:value=>{intercepted=true;response=value;}});
   assert.equal(intercepted,expected,`Offline cache boundary: ${method} ${path}`);
   if (response) await response;
 }
@@ -101,14 +101,14 @@ for (const [path,method,expected] of cacheCases) {
 // consistently apply to worker-originated requests across browser engines.
 const failureHandlers = {};
 runInNewContext(sw, {
-  self: { location:{origin:'https://onenam.africa'}, addEventListener:(type,handler)=>{failureHandlers[type]=handler;} },
+  self: { location:{origin:'https://namibone.com'}, addEventListener:(type,handler)=>{failureHandlers[type]=handler;} },
   URL,
   caches: { open:async()=>({match:async path=>path==='/offline.html'?new Response('offline guide'):undefined}) },
   fetch:async()=>{throw new Error('simulated network failure');},
 });
 for (const [path,mode] of [['/privacy.html','navigate'],['/assets/app.js','cors']]) {
   let response;
-  failureHandlers.fetch({request:{url:`https://onenam.africa${path}`,method:'GET',mode},respondWith:value=>{response=value;}});
+  failureHandlers.fetch({request:{url:`https://namibone.com${path}`,method:'GET',mode},respondWith:value=>{response=value;}});
   if (mode === 'navigate') assert.equal(await (await response).text(),'offline guide');
   else await assert.rejects(response,/simulated network failure/);
 }

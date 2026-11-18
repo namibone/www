@@ -2,7 +2,7 @@
 
 ## Visual direction
 
-The public landing page opens directly into the companion. The supplied Namibia-inspired character sits beside a prominent, stable prompt on desktop and in a compact welcome region on mobile. Warm sand and cream support the teal action colour; small blue/red/green/gold accents echo the supplied artwork. Six topic links connect the conversation entry to existing journeys. The desktop rail remains available; mobile adds three bottom navigation links. Inner service pages retain the compact navy/teal interface for structured tasks. The existing OneNam identity and onenam.africa domain are retained.
+The public landing page opens directly into the companion. The supplied Namibia-inspired character sits beside a prominent, stable prompt on desktop and in a compact welcome region on mobile. Warm sand and cream support the teal action colour; small blue/red/green/gold accents echo the supplied artwork. Six topic links connect the conversation entry to existing journeys. The desktop rail remains available; mobile adds three bottom navigation links. Inner service pages retain the compact navy/teal interface for structured tasks. The existing OneNam identity and namibone.com domain are retained.
 
 Only the artwork moves in a slow ten-second CSS loop. A visible pause button stops it; reduced-motion disables it automatically. There is no autoplay speech or microphone request. The wireframe gallery at /companion-wireframes.html documents both layouts; editable SVG sources are in docs/wireframes/.
 

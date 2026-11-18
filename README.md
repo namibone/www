@@ -1,6 +1,6 @@
 # OneNam companion and service gateway
 
-Live at **https://onenam.africa**, hosted by GitHub Pages from this repository. Original history, custom domain and HTTPS are preserved.
+Live at **https://namibone.com**, hosted by GitHub Pages from this repository. Original history, custom domain and HTTPS are preserved.
 
 The companion-first prototype contains **47 navigable pages**: a public service catalogue, eight service details, six department previews, public notices and guidance, citizen applications/messages/profile, department operations/casework/communications/analytics, and sample balances/payment review/history/receipts.
 
@@ -13,7 +13,7 @@ The root page opens directly into a responsive conversation interface with a lar
 Typed prompts currently use an honest local **Service guide preview**, linking to existing journeys without transmitting the question. Live generative AI is **not connected**. `assets/companion.js` supports an explicitly configured same-origin `/api/` endpoint returning `{reply: string}`; GitHub Pages alone cannot run it. Messages remain in page memory, render as plain text and clear on reload or New conversation. Dictation requires an explicit click and may use the browser vendor’s speech service.
 
 - [Mobile and desktop wireframes](docs/WIREFRAMES.md)
-- [Live wireframe gallery](https://onenam.africa/companion-wireframes.html)
+- [Live wireframe gallery](https://namibone.com/companion-wireframes.html)
 - [Companion integration contract](docs/COMPANION-INTEGRATION.md)
 
 ## Run and check
