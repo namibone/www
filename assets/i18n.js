@@ -9,6 +9,9 @@ const catalogs={
  tn:{home:'Gae',services:'Ditirelo',companion:'AI Companion',government:'Ditirelo tsa puso',wallet:'Finance & N1 Wallet',discover:'Batlisisa',help:'Thuso le kaelo',language:'Puo',welcome:'Batho. Ditšhono.',tomorrow:'Isago e e botoka.',ask:'Botsa potso kgotsa o mpolelele se o se tlhokang…'},
  st:{home:'Lehae',services:'Ditshebeletso',companion:'AI Companion',government:'Ditshebeletso tsa mmuso',wallet:'Finance & N1 Wallet',discover:'Fumana',help:'Thuso le tataiso',language:'Puo',welcome:'Batho. Menyetla.',tomorrow:'Bokamoso bo betere.',ask:'Botsa potso kapa o mpolelle seo o se hlokang…'},
  sn:{home:'Kumba',services:'Masevhisi',companion:'AI Companion',government:'Masevhisi ehurumende',wallet:'Finance & N1 Wallet',discover:'Ongorora',help:'Rubatsiro nenhungamiro',language:'Mutauro',welcome:'Vanhu. Mikana.',tomorrow:'Ramangwana riri nani.',ask:'Bvunza mubvunzo kana kuti ndiudze zvaunoda…'},
+ // Namibian pilot locales below are registered for discovery only until native-speaker-reviewed catalogs are available.
+ // They intentionally inherit English rather than presenting invented translations.
+ ng:{},kj:{},hz:{},naq:{},kwn:{},loz:{},
  de:{home:'Startseite',services:'Dienste',companion:'KI-Begleiter',government:'Behördendienste',wallet:'Finanzen & N1 Wallet',discover:'Entdecken',help:'Hilfe & Informationen',language:'Sprache',welcome:'Menschen. Chancen.',tomorrow:'Eine bessere Zukunft.',ask:'Stellen Sie eine Frage oder sagen Sie, was Sie brauchen…',intro:'Ihre Plattform für ein besseres Namibia.'}
 };
 const select=document.querySelector('#site-language');
@@ -17,7 +20,7 @@ const saveLocale=v=>{try{localStorage.setItem('namibone.locale',v)}catch{}};
 const preferred=(navigator.languages||[navigator.language||'en']).map(x=>x.toLowerCase().split('-')[0]).find(x=>Object.hasOwn(catalogs,x));
 function applyLocale(locale){
  const lang=Object.hasOwn(catalogs,locale)?locale:'en',strings={...catalogs.en,...catalogs[lang]};
- document.documentElement.lang=lang;select.value=lang;
+ document.documentElement.lang=Object.keys(catalogs[lang]).length?lang:'en';select.value=lang;
  for(const el of document.querySelectorAll('[data-i18n]')){const key=el.dataset.i18n;if(strings[key]){const label=[...el.childNodes].find(n=>n.nodeType===Node.TEXT_NODE);if(label)label.textContent=strings[key];else el.textContent=strings[key]}}
  for(const el of document.querySelectorAll('[data-i18n-placeholder]')){const key=el.dataset.i18nPlaceholder;if(strings[key])el.setAttribute('placeholder',strings[key])}
  document.dispatchEvent(new CustomEvent('namibone:localechange',{detail:{locale:lang}}));
