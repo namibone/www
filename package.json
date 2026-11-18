@@ -8,7 +8,8 @@
     "build": "node scripts/build.mjs",
     "check:design": "node scripts/check-design.mjs",
     "test": "playwright test",
-    "check": "npm run build && npm run check:design && npm test"
+    "check": "npm run build && npm run check:design && npm run test:dialogue && npm test",
+    "test:dialogue": "node --test tests/guided-dialogue.test.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.0",
