@@ -1,85 +1,43 @@
-import { mkdir, writeFile, readFile, cp, readdir, rm } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { resolve, dirname, basename } from 'node:path';
+import {mkdir,writeFile,readFile,cp,readdir,rm} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {resolve,dirname,basename} from 'node:path';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
-
-// Only the generated dist directory immediately inside this checkout may be cleared.
-const output = resolve('dist');
-assert(dirname(output) === process.cwd() && basename(output) === 'dist');
-await rm(output, { recursive: true, force: true });
-await mkdir('dist/assets', { recursive: true });
-await cp('assets', 'dist/assets', { recursive: true });
-await cp('CNAME', 'dist/CNAME');
-await writeFile('dist/.nojekyll', '');
-const icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="17" fill="#183e40"/><circle cx="43" cy="20" r="6" fill="#f8f6ef"/><path d="M7 47 28 20l17 27Z" fill="#e4a26e"/><path d="M24 47 40 31l17 16Z" fill="#f8f6ef"/><path d="M7 51h50" stroke="#78b4b8" stroke-width="3"/></svg>`;
-await writeFile('dist/assets/icon.svg', icon);
-for (const size of [32, 180, 192, 512]) await sharp(Buffer.from(icon)).resize(size).png().toFile(`dist/assets/icon-${size}.png`);
-
-const paths = {
-  book: '<path d="M3 5c3-1 6 0 9 2 3-2 6-3 9-2v15c-3-1-6 0-9 2-3-2-6-3-9-2Z"/><path d="M12 7v15"/>',
-  work: '<rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 12c6 4 12 4 18 0M10 14h4"/>',
-  compass: '<circle cx="12" cy="12" r="9"/><path d="m16 8-3 5-5 3 3-5Z"/>',
-  people: '<circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M17 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v3"/>',
-  globe: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>',
-  feather: '<path d="M20 4C9 2 4 8 7 15c6 3 12-1 13-11ZM4 21 16 9M9 16v-5"/>',
-  lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
-};
-const svg = name => `<svg class="icon" aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
-const brand = '<a class="brand" href="/" aria-label="OneNam home"><img src="/assets/icon.svg" alt="" width="40" height="40"><span>One<span>Nam</span></span></a>';
-const header = `<a class="skip-link" href="#main" tabindex="0">Skip to content</a><div class="connection-banner" id="connection-banner" role="status" hidden>You’re offline. Saved pilot pages are available; sign-in needs a connection.</div><header class="site-header container">${brand}<nav class="site-nav" aria-label="Main navigation"><a href="/#explore">Explore</a><a class="nav-about" href="/#about">About the pilot</a><a class="nav-login" href="/#signin">Sign in <span aria-hidden="true">↗</span></a></nav></header>`;
-const footer = `<footer class="site-footer container"><div class="footer-top">${brand}<nav class="footer-links" aria-label="Footer navigation"><a href="/privacy.html">Privacy</a><a href="/accessibility.html">Accessibility</a><a href="/sitemap.html">Site map</a><a href="/#about">About OneNam</a></nav></div><div class="footer-note"><p>© 2026 OneNam · A digital gateway pilot for Namibia.</p><p>Independent pilot. Government affiliation and endorsement are not verified.</p></div></footer>`;
-const layout = (title, description, path, body) => `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="strict-origin-when-cross-origin"><title>${title}</title><meta name="description" content="${description}"><meta name="theme-color" content="#183e40"><link rel="canonical" href="https://onenam.africa${path}"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:type" content="website"><meta property="og:url" content="https://onenam.africa${path}"><meta property="og:image" content="https://onenam.africa/assets/namib-coast.webp"><link rel="icon" href="/assets/icon.svg" type="image/svg+xml"><link rel="icon" href="/assets/icon-32.png" type="image/png" sizes="32x32"><link rel="apple-touch-icon" href="/assets/icon-180.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/assets/global.css"><script src="/assets/app.js" defer></script></head><body>${header}${body}${footer}</body></html>`;
-const services = [
-  ['book', 'Learn & grow', 'A place for skills, learning resources and new possibilities.', 'learning'],
-  ['work', 'Work & enterprise', 'Explore the idea of a more connected working life.', 'work'],
-  ['compass', 'Discover Namibia', 'Make room for places, experiences and local knowledge.', 'discover'],
-  ['people', 'Everyday connections', 'Bring useful community information closer to home.', 'community'],
-];
-const providerIcon = {
-  Google: '<svg aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M21 12.2c0-.7-.1-1.4-.2-2.2H12v4h5c-.5 2-2.2 3.5-5 3.5a5.5 5.5 0 1 1 0-11c1.5 0 2.8.6 3.8 1.5l2.8-2.8A9.5 9.5 0 1 0 12 21.5c5.5 0 9-3.8 9-9.3Z"/></svg>',
-  Microsoft: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h9v9H2zM13 2h9v9h-9zM2 13h9v9H2zM13 13h9v9h-9z"/></svg>',
-  GitHub: '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5v-2.7c-2.7.6-3.3-1.1-3.3-1.1-.5-1.2-1.2-1.5-1.2-1.5-1-.7.1-.7.1-.7 1.1.1 1.6 1.1 1.6 1.1 1 1.6 2.5 1.1 3 .8.1-.7.4-1.1.7-1.4-2.2-.3-4.5-1.1-4.5-5a3.9 3.9 0 0 1 1-2.7c-.1-.3-.5-1.3.1-2.7 0 0 .9-.3 2.8 1a10 10 0 0 1 5.2 0c1.9-1.3 2.8-1 2.8-1 .6 1.4.2 2.4.1 2.7a3.9 3.9 0 0 1 1 2.7c0 3.9-2.3 4.7-4.5 5 .4.3.7 1 .7 2v3.5A10 10 0 0 0 12 2Z"/></svg>'
-};
-const home = `<main id="main"><section class="hero container" aria-labelledby="hero-title"><div class="hero-copy"><span class="eyebrow pilot"><span class="dot" aria-hidden="true"></span> Rooted in Namibia. Open to possibility.</span><h1 id="hero-title">One place.<br>More <em>possibility.</em></h1><p>A simpler way to connect with information, services and opportunities in Namibia. Your digital journey starts here.</p><div class="hero-actions"><a class="button" href="#explore">Explore the gateway <span aria-hidden="true">↗</span></a><a class="text-link" href="#about">Meet OneNam</a></div><div class="hero-note">${svg('globe')} A growing idea. An open invitation. A connected Namibia.</div></div><figure class="hero-art"><img src="/assets/namib-coast.webp" alt="Illustrated aerial landscape of orange Namib-inspired dunes meeting a blue Atlantic coast" width="1280" height="853" fetchpriority="high"><figcaption class="art-caption"><strong>Where horizons meet.</strong><small>NAMIBIA-INSPIRED · AI ARTWORK</small></figcaption></figure></section><div class="intro-strip container"><p>Built around people.<br>Inspired by a place like no other.</p><div class="principles"><span>${svg('globe')} Open to explore</span><span>${svg('feather')} Made to travel light</span><span>${svg('lock')} No account needed</span></div></div><section class="section container" id="explore" aria-labelledby="explore-title"><div class="section-heading"><div><span class="eyebrow">Your starting point</span><h2 id="explore-title">A world of possibilities,<br>closer to home.</h2></div><p>Explore the vision for OneNam. These areas are previews; live services are still to come.</p></div><div class="service-grid">${services.map(([icon,title,desc,id])=>`<a class="service" href="/explore.html#${id}" data-service="${id}"><span class="service-icon">${svg(icon)}</span><h3>${title}</h3><p>${desc}</p><span class="service-bottom"><span class="status-label">Pilot preview</span><span aria-hidden="true">↗</span></span></a>`).join('')}</div></section><section class="container welcome" id="signin" aria-labelledby="welcome-title"><div class="welcome-copy"><span class="eyebrow">A familiar way in</span><h2 id="welcome-title">Your next chapter.<br>One simple beginning.</h2><p>The vision is one familiar sign-in for your OneNam journey. For now, the pilot is open to browse without an account.</p><ol class="steps"><li><span class="step-number">01</span> Explore the pilot freely</li><li><span class="step-number">02</span> See what’s taking shape</li><li><span class="step-number">03</span> Come back as the gateway grows</li></ol></div><div class="login-card"><h3>Welcome to OneNam</h3><p>Your gateway, at your pace.</p>${Object.entries(providerIcon).map(([name,icon])=>`<button class="provider" type="button" disabled aria-describedby="auth-note">${icon}<span>Continue with ${name}</span><small>Coming soon</small></button>`).join('')}<p class="auth-note" id="auth-note">Sign-in is not available in this pilot yet. No account is created and no provider receives your information.</p><a class="guest-link" href="#explore">Explore without signing in <span aria-hidden="true">→</span></a></div></section><section class="section container offline-row" id="about" aria-labelledby="about-title"><div><span class="eyebrow">Connection, considered</span><h2 id="about-title">Big horizons.<br>A lighter digital footprint.</h2><p>OneNam is an early digital gateway pilot for Namibia. We’re starting with a small, accessible home for a bigger idea: making useful connections easier to find.</p></div><div class="offline-panel"><h3>Take the starting point with you.</h3><p>Once saved by your browser, these public pilot pages can be read offline. Sign-in and future live services will need an internet connection.</p><p class="offline-status" id="offline-status" role="status">Connect to save these pages for offline reading.</p><a class="text-link" href="/offline.html">How offline reading works <span aria-hidden="true">↗</span></a></div></section></main><dialog id="service-dialog" aria-labelledby="dialog-title"><button class="dialog-close" type="button" aria-label="Close preview">×</button><span class="eyebrow dialog-label">Pilot preview</span><h2 id="dialog-title"></h2><p id="dialog-description"></p><p>This area is being explored. There are no live listings, applications or transactions in this pilot.</p><a class="text-link" href="/explore.html">Read the gateway vision →</a></dialog>`;
-const pages = [
-  ['index.html', 'OneNam — One place. More possibility.', 'Explore OneNam, an independent digital gateway pilot connecting people in Namibia with information, services and opportunities.', '/', home],
-  ['explore.html', 'Explore the vision — OneNam', 'Discover the four proposed areas of the OneNam digital gateway pilot.', '/explore.html', `<main id="main" class="container prose"><span class="eyebrow">The gateway vision</span><h1>Possibility starts with connection.</h1><p>These are proposed areas for the OneNam pilot. No service providers, listings or partnerships have been confirmed.</p>${services.map(([,title,desc,id])=>`<section id="${id}"><h2>${title}</h2><p>${desc}</p><p>Preview only. This area does not yet offer live services, enrolment, job applications, bookings or community submissions.</p></section>`).join('')}<a class="button" href="/">Back to the gateway →</a></main>`],
-  ['privacy.html', 'Privacy — OneNam', 'How the OneNam pilot handles browser storage and visitor information.', '/privacy.html', `<main id="main" class="container prose"><span class="eyebrow">The pilot, transparently</span><h1>Your privacy.</h1><p>Last updated 18 November 2026.</p><h2>No account required</h2><p>This pilot has no working sign-in, forms, analytics or advertising scripts. Google, Microsoft and GitHub sign-in buttons are disabled and do not contact those providers. Please do not submit personal or sensitive information through this site.</p><h2>Offline storage</h2><p>A service worker saves only public pilot pages and their supporting files in your browser. This does not include identities, passwords, tokens or personal records. Your browser may remove saved files when storage is low. To remove them yourself, clear this site's stored data in your browser settings.</p><h2>Hosting</h2><p>GitHub Pages serves this website and may process technical request information under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub’s privacy statement</a>. All page assets are hosted with the site; there are no third-party fonts or image requests.</p><h2>Before accounts launch</h2><p>The operator’s identity and privacy contact, purposes of processing, retention rules and account deletion process must be confirmed and published before authentication or personal-data services are enabled.</p><p><a href="/">Return to OneNam</a></p></main>`],
-  ['accessibility.html', 'Accessibility — OneNam', 'Accessibility features and known limits of the OneNam pilot.', '/accessibility.html', `<main id="main" class="container prose"><span class="eyebrow">Designed for more people</span><h1>Access starts here.</h1><p>The pilot uses semantic headings, a skip link, visible keyboard focus, accessible button labels, responsive layouts and reduced-motion preferences. Public content remains readable without JavaScript.</p><h2>Using the gateway</h2><p>Press Tab to move through links and available controls. Press Enter to open a preview. Press Escape or the Close preview button to close it. Your focus returns to the link you opened. Browser zoom and text resizing are supported.</p><h2>What has been checked</h2><p>Automated accessibility checks and keyboard, offline and responsive browser tests form part of the publishing gate. Automated checks do not establish complete WCAG conformance. A full manual screen-reader and assistive-technology audit remains to be completed.</p><h2>Known limits</h2><p>The pilot is currently in English. Provider sign-in and live services are unavailable. A public support contact must be confirmed before live services launch.</p><p><a href="/">Return to OneNam</a></p></main>`],
-  ['offline.html', 'Offline reading — OneNam', 'Read saved OneNam pilot pages with limited connectivity.', '/offline.html', `<main id="main" class="container prose"><span class="eyebrow">A lighter connection</span><h1>A starting point, even offline.</h1><p>When you visit online in a supported browser, OneNam attempts to save the public pilot pages and their assets. Look for “Public pilot pages saved for offline reading” on the home page before disconnecting.</p><h2>What is saved</h2><p>The home page, gateway vision, privacy, accessibility, site map and this guide are available once saved. The artwork and styles are included. Storage depends on your browser and available space, and private browsing may restrict it.</p><h2>What needs a connection</h2><p>External links, sign-in and any future live services need internet access. Accounts are not available in this pilot. Offline pages are a saved copy and may be out of date; reconnect to get the latest version.</p><p id="offline-status" role="status">Connect to save these pages for offline reading.</p><a class="button" href="/">Back to OneNam →</a></main>`],
-  ['sitemap.html', 'Site map — OneNam', 'Find every public OneNam pilot page.', '/sitemap.html', `<main id="main" class="container prose"><span class="eyebrow">Find your way</span><h1>OneNam site map.</h1><ul><li><a href="/">Home and sign-in availability</a></li><li><a href="/explore.html">Explore the gateway vision</a></li><li><a href="/privacy.html">Privacy</a></li><li><a href="/accessibility.html">Accessibility</a></li><li><a href="/offline.html">Offline reading</a></li></ul></main>`],
-  ['404.html', 'Page not found — OneNam', 'Return to the OneNam digital gateway.', '/404.html', '<main id="main" class="container prose"><span class="eyebrow">A different path</span><h1>This page isn’t here.</h1><p>The address may have changed. Head back to the gateway to find your way.</p><a class="button" href="/">Return to OneNam →</a></main>'],
-];
-for (const [file,title,desc,path,body] of pages) await writeFile(`dist/${file}`, layout(title,desc,path,body));
-await writeFile('dist/manifest.webmanifest', JSON.stringify({name:'OneNam digital gateway',short_name:'OneNam',id:'/',start_url:'/',scope:'/',display:'standalone',background_color:'#f8f6ef',theme_color:'#183e40',description:'An independent digital gateway pilot for Namibia.',icons:[192,512].map(s=>({src:`/assets/icon-${s}.png`,sizes:`${s}x${s}`,type:'image/png',purpose:'any'}))},null,2));
-await writeFile('dist/sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${pages.filter(p=>p[0]!=='404.html').map(p=>`<url><loc>https://onenam.africa${p[3]}</loc></url>`).join('')}</urlset>`);
+import {pages} from './pages.mjs';
+import {layout} from './ui.mjs';
+const output=resolve('dist');
+assert(dirname(output)===process.cwd()&&basename(output)==='dist');
+await rm(output,{recursive:true,force:true});
+await mkdir('dist/assets',{recursive:true});
+await cp('assets','dist/assets',{recursive:true});
+await cp('CNAME','dist/CNAME');
+await writeFile('dist/.nojekyll','');
+const mark='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#10283e"/><path d="M15 46V18h8l18 20V18h8v28h-8L23 26v20Z" fill="#ffffff"/><path d="M15 50h34" stroke="#53b9ac" stroke-width="3"/></svg>';
+await writeFile('dist/assets/icon.svg',mark);
+for(const size of [32,180,192,512])await sharp(Buffer.from(mark)).resize(size).png().toFile(`dist/assets/icon-${size}.png`);
+for(const page of pages)await writeFile(`dist/${page.path==='/'?'index.html':page.path.slice(1)}`,layout(page));
+await writeFile('dist/manifest.webmanifest',JSON.stringify({name:'OneNam digital gateway',short_name:'OneNam',id:'/',start_url:'/',scope:'/',display:'standalone',background_color:'#f3f6f9',theme_color:'#10283e',description:'Independent public-service prototype for Namibia.',icons:[192,512].map(s=>({src:`/assets/icon-${s}.png`,sizes:`${s}x${s}`,type:'image/png',purpose:'any'}))},null,2));
+await writeFile('dist/sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${pages.filter(p=>p.path!=='/404.html').map(p=>`<url><loc>https://onenam.africa${p.path}</loc></url>`).join('')}</urlset>`);
 await writeFile('dist/robots.txt','User-agent: *\nAllow: /\nSitemap: https://onenam.africa/sitemap.xml\n');
-const assets = (await readdir('dist/assets')).map(f=>`/assets/${f}`);
-const precache = ['/', ...pages.map(p=>`/${p[0]}`), ...assets, '/manifest.webmanifest'];
-const hash = createHash('sha256');
-for (const file of precache.filter(p=>p!=='/')) hash.update(await readFile(`dist${file}`));
-const version = hash.digest('hex').slice(0,16);
-await writeFile('dist/sw.js', `const CACHE = 'onenam-${version}';
-const PUBLIC = ${JSON.stringify(precache)};
-self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PUBLIC.map(path => new Request(path, { cache: 'reload' }))))));
-self.addEventListener('activate', event => event.waitUntil((async () => { for (const key of await caches.keys()) if (key.startsWith('onenam-') && key !== CACHE) await caches.delete(key); await self.clients.claim(); })()));
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.search || !PUBLIC.includes(url.pathname)) return;
-  event.respondWith(caches.open(CACHE).then(async cache => {
-    const saved = await cache.match(url.pathname);
-    if (saved) return saved;
-    try { return await fetch(event.request, { cache: 'no-store' }); }
-    catch (error) {
-      if (event.request.mode === 'navigate') {
-        const fallback = await cache.match('/offline.html');
-        if (fallback) return fallback;
-      }
-      throw error;
-    }
-  }));
-});
-`);
-console.log(`Built ${pages.length} pages. Offline version: ${version}`);
+const isPublicOffline=page=>(page.section??'public')==='public'&&page.offline!==false;
+const publicPages=pages.filter(isPublicOffline).map(p=>p.path);
+const assets=(await readdir('dist/assets')).map(f=>`/assets/${f}`);
+const precache=[...publicPages,'/index.html',...assets,'/manifest.webmanifest'];
+await writeFile('dist/offline-manifest.json',JSON.stringify(precache));
+const hash=createHash('sha256');
+for(const p of precache)hash.update(await readFile(`dist${p==='/'?'/index.html':p}`));
+const version=hash.digest('hex').slice(0,16);
+await writeFile('dist/sw.js',`const CACHE='onenam-${version}';
+const PUBLIC=${JSON.stringify(precache)};
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PUBLIC.map(path=>new Request(path,{cache:'reload'}))))));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('onenam-')&&key!==CACHE)await caches.delete(key);await self.clients.claim();})()));
+self.addEventListener('fetch',event=>{
+ const url=new URL(event.request.url);
+ if(event.request.method!=='GET'||url.origin!==self.location.origin||url.search||!PUBLIC.includes(url.pathname))return;
+ event.respondWith(caches.open(CACHE).then(async cache=>{
+  const saved=await cache.match(url.pathname);if(saved)return saved;
+  try{return await fetch(event.request,{cache:'no-store'});}catch(error){if(event.request.mode==='navigate'){const fallback=await cache.match('/offline.html');if(fallback)return fallback;}throw error;}
+ }));
+});`);
+await writeFile('dist/page-manifest.json',JSON.stringify(pages.map(page=>({path:page.path,title:page.title,section:page.section??'public',offline:isPublicOffline(page)})),null,2));
+console.log(`Built ${pages.length} pages; ${publicPages.length} public offline routes. Version ${version}.`);
