@@ -10,12 +10,12 @@ export const companionHome = `
 <section class="companion-stage" data-companion id="companion" aria-label="NamibOne Companion">
  <div class="companion-landscape" aria-hidden="true"></div>
  <div class="companion-content">
-  <div class="companion-heading"><span class="companion-eyebrow">${symbol('spark')} NAMIBONE · EVERYTHING NAMIBIA</span><h1>People. Opportunities.<br><span>A brighter tomorrow.</span></h1></div>
+  <div class="companion-heading"><span class="companion-eyebrow">${symbol('spark')} NAMIBONE · EVERYTHING NAMIBIA</span><h1><span data-i18n="welcome">People. Opportunities.</span><br><span data-i18n="tomorrow">A brighter tomorrow.</span></h1></div>
   <div id="companion-welcome"><p class="companion-intro">Your everyday platform for a better Namibia.<br>Ask your NamibOne Companion or explore the services below.</p></div>
   <section id="companion-conversation" aria-label="Your conversation" hidden><div id="companion-messages" role="log" aria-label="Conversation messages" aria-live="polite" aria-relevant="additions"></div></section>
   <form id="companion-form" class="companion-composer" aria-label="Ask your companion">
    <label class="sr-only" for="companion-prompt">What would you like help with?</label>
-   <textarea id="companion-prompt" name="prompt" rows="2" maxlength="1000" placeholder="Ask something, or tell me what you need…" autocomplete="off" spellcheck="true" aria-describedby="companion-mode companion-status"></textarea>
+   <textarea id="companion-prompt" name="prompt" rows="2" maxlength="1000" placeholder="Ask something, or tell me what you need…" data-i18n-placeholder="ask" autocomplete="off" spellcheck="true" aria-describedby="companion-mode companion-status"></textarea>
    <div class="composer-toolbar"><span id="companion-mode" class="companion-mode"><span aria-hidden="true"></span>Service guide preview</span><div class="composer-actions"><button type="button" id="companion-voice" class="companion-icon-button" aria-label="Dictate a message" title="Dictate a message">${symbol('mic')}</button><button type="submit" id="companion-send" class="companion-send" aria-label="Send message" title="Send message">${symbol('send')}</button></div></div>
   </form>
   <p id="companion-status" class="companion-status" role="status" aria-live="polite">Explore the preview with a question. Please leave out personal details.</p>
