@@ -1,0 +1,27 @@
+:root {
+  --color-ink: #183e40;
+  --color-muted: #506365;
+  --color-paper: #f8f6ef;
+  --color-white: #ffffff;
+  --color-sand: #eee9dd;
+  --color-line: #d8dcd4;
+  --color-ocean: #165b60;
+  --color-ocean-soft: #e5efeb;
+  --color-dune: #9e4828;
+  --color-dune-soft: #f6e6d9;
+  --color-focus: #075ec4;
+  --font-body: 'Segoe UI', Arial, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --radius-small: .5rem;
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+  --content-width: 1200px;
+}

@@ -1,0 +1,8 @@
+language: en-US
+reviews:
+  profile: assertive
+  auto_review:
+    enabled: false
+  path_instructions:
+    - path: "**/*"
+      instructions: "Review accessibility, offline cache boundaries, honest disabled authentication, and the deployment gate. This is an independent pilot with no verified government endorsement. Do not suggest fake login or caching personal data."
