@@ -25,7 +25,7 @@ try{
  }
 }catch{try{sessionStorage.removeItem(key);}catch{storage=false;}}
 const toast=text=>{const el=$('#toast');el.textContent=text;el.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>{el.hidden=true;},5000);};
-const save=()=>{try{sessionStorage.setItem(key,JSON.stringify(state));}catch{storage=false;toast('Browser storage is unavailable. Sample changes may be lost when you leave this page.');}};
+const save=()=>{try{sessionStorage.setItem(key,JSON.stringify(state));storage=true;return true;}catch{storage=false;toast('Browser storage is unavailable. Sample changes may be lost when you leave this page.');return false;}};
 const dateLabel=date=>new Date(`${date}T12:00:00Z`).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
 const today=()=>new Date().toISOString().slice(0,10);
 const badge=status=>`<span class="badge ${status==='Completed'?'success':status==='Action needed'?'warning':'info'}">${esc(status)}</span>`;
@@ -88,7 +88,13 @@ function renderCase(staff){
  if(!a){host.innerHTML=empty('Sample request not found','The request may have been reset or belongs to a different browser tab.',staff?'/staff-cases.html':'/citizen-applications.html','Return to requests');return;}
  const s=serviceFor(a.service);
  host.innerHTML=`<div class="split"><div class="stack"><section class="panel"><div class="section-head"><h2>${esc(s.name)}</h2>${badge(a.status)}</div>${details([['Reference',a.id],['Department',departmentFor(s.department).name],['Created',dateLabel(a.date)],['Request type',a.type],['Profile','Sample citizen'],['Update preference',a.channel]])}</section><section class="panel"><h2>Request activity</h2><ol class="timeline"><li><strong>Sample request created</strong><p>${dateLabel(a.date)} · Stored in this tab only</p></li><li><strong>${esc(a.status)}</strong><p>${a.status==='Completed'?'The example case is complete. No official outcome has been issued.':a.status==='Action needed'?'Review the sample service guidance or illustrative payment.':'The request is visible in the sample department queue.'}</p></li></ol></section></div><aside class="panel">${staff?`<h2>Update sample case</h2><p class="small muted">This changes the citizen view in this tab. It does not update a government system or notify anyone.</p><form id="case-update"><label class="field">New status<select id="case-status">${statuses.map(status=>`<option${status===a.status?' selected':''}>${status}</option>`).join('')}</select></label><button class="button section" type="submit">Save sample status</button><p class="status-region" id="case-update-status" role="status"></p></form>`:`<h2>Your next step</h2><p class="small muted">${a.status==='Completed'?'This sample journey is complete. Explore another service or review your inbox.':'Review the service guidance and your messages for the next sample step.'}</p><div class="stack"><a class="button" href="/service-${s.id}.html">View service guidance →</a><a class="button secondary" href="/citizen-messages.html">Open sample inbox →</a></div>`}</aside></div>`;
- $('#case-update')?.addEventListener('submit',event=>{event.preventDefault();a.status=$('#case-status').value;save();renderCase(true);$('#case-update-status').textContent='Sample status updated. The citizen view in this tab now reflects this change.';toast('Sample case updated. No external notification sent.');});
+ $('#case-update')?.addEventListener('submit',event=>{
+  event.preventDefault();a.status=$('#case-status').value;save();
+  const statusBadge=host.querySelector('.badge');statusBadge.textContent=a.status;statusBadge.className=`badge ${a.status==='Completed'?'success':a.status==='Action needed'?'warning':'info'}`;
+  host.querySelector('.timeline li:last-child strong').textContent=a.status;
+  host.querySelector('.timeline li:last-child p').textContent=a.status==='Completed'?'The example case is complete. No official outcome has been issued.':a.status==='Action needed'?'Review the sample service guidance or illustrative payment.':'The request is visible in the sample department queue.';
+  $('#case-update-status').textContent=storage?'Sample status updated. The citizen view in this tab now reflects this change.':'Sample status changed on this page only. Browser storage is unavailable, so it will not carry to another page.';
+ });
 }
 renderCase(false);renderCase(true);
 
@@ -106,6 +112,7 @@ if($('#application-form')){
    const id=`DEMO-${number}`;state.applications.push({id,service:$('#request-service').value,status:'Received',date:today(),type:$('#request-type').value,channel:$('#request-channel').value});save();$('#request-reference').textContent=`Your sample reference: ${id}`;$('#request-result-link').href=`/citizen-application.html?id=${id}`;
   }
   step=Math.min(step+1,3);showStep();
+  if(step===3&&!storage){$('#request-result-link').hidden=true;$('#wizard-status').textContent='Browser storage is unavailable. This temporary sample request exists on this page only and cannot be tracked after leaving. No official request was sent.';}
  });
 }
 
@@ -140,7 +147,7 @@ if($('#payment-review')){
  else if(state.payments.some(p=>p.invoice===i.id))host.innerHTML=empty('This sample payment is already simulated','A second simulation has not been created.',`/receipt.html?id=${i.id}`,'View simulation receipt');
  else{
   host.innerHTML=`<div class="split"><section class="panel"><h2>${i.title}</h2><p class="small muted">${i.department} · ${i.id}</p><div class="amount">${money(i.amount)}</div><p class="small muted">Illustrative amount, not an official fee</p><hr class="divider">${details([['Sample reference',i.reference],['Processing fee','N$0.00 (sample)'],['Actual funds transferred','N$0.00'],['Payment provider','Not connected']])}</section><section class="panel"><h2>Choose a simulation</h2><form id="payment-form"><label class="field section">Sample payment method<select id="payment-method">${methods.map(m=>`<option>${m}</option>`).join('')}</select></label><label class="choice"><input id="payment-confirm" type="checkbox">I understand this is a simulation and no money will move.</label><button class="button section" type="submit">Simulate payment</button><p class="status-region" id="payment-status" role="status"></p></form></section></div>`;
-  $('#payment-form').addEventListener('submit',event=>{event.preventDefault();if(!$('#payment-confirm').checked){$('#payment-status').textContent='Confirm the simulation notice to continue.';$('#payment-confirm').focus();return;}if(!state.payments.some(p=>p.invoice===i.id)){state.payments.push({invoice:i.id,method:$('#payment-method').value,date:today()});save();}location.href=`/receipt.html?id=${i.id}`;});
+  $('#payment-form').addEventListener('submit',event=>{event.preventDefault();if(!$('#payment-confirm').checked){$('#payment-status').textContent='Confirm the simulation notice to continue.';$('#payment-confirm').focus();return;}if(!state.payments.some(p=>p.invoice===i.id)){state.payments.push({invoice:i.id,method:$('#payment-method').value,date:today()});save();}if(!storage){$('#payment-status').textContent='Simulation completed on this page only. Browser storage is unavailable, so no receipt or history can be saved. No money moved.';$('#payment-form button').disabled=true;return;}location.href=`/receipt.html?id=${i.id}`;});
  }
 }
 if($('#receipt-detail')){

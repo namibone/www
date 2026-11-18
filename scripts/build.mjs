@@ -19,7 +19,8 @@ for(const page of pages)await writeFile(`dist/${page.path==='/'?'index.html':pag
 await writeFile('dist/manifest.webmanifest',JSON.stringify({name:'OneNam digital gateway',short_name:'OneNam',id:'/',start_url:'/',scope:'/',display:'standalone',background_color:'#f3f6f9',theme_color:'#10283e',description:'Independent public-service prototype for Namibia.',icons:[192,512].map(s=>({src:`/assets/icon-${s}.png`,sizes:`${s}x${s}`,type:'image/png',purpose:'any'}))},null,2));
 await writeFile('dist/sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${pages.filter(p=>p.path!=='/404.html').map(p=>`<url><loc>https://onenam.africa${p.path}</loc></url>`).join('')}</urlset>`);
 await writeFile('dist/robots.txt','User-agent: *\nAllow: /\nSitemap: https://onenam.africa/sitemap.xml\n');
-const publicPages=pages.filter(p=>p.offline!==false&&!p.section).map(p=>p.path);
+const isPublicOffline=page=>(page.section??'public')==='public'&&page.offline!==false;
+const publicPages=pages.filter(isPublicOffline).map(p=>p.path);
 const assets=(await readdir('dist/assets')).map(f=>`/assets/${f}`);
 const precache=[...publicPages,'/index.html',...assets,'/manifest.webmanifest'];
 await writeFile('dist/offline-manifest.json',JSON.stringify(precache));
@@ -38,5 +39,5 @@ self.addEventListener('fetch',event=>{
   try{return await fetch(event.request,{cache:'no-store'});}catch(error){if(event.request.mode==='navigate'){const fallback=await cache.match('/offline.html');if(fallback)return fallback;}throw error;}
  }));
 });`);
-await writeFile('dist/page-manifest.json',JSON.stringify(pages.map(({path,title,section='public',offline=true})=>({path,title,section,offline:section==='public'&&offline})),null,2));
+await writeFile('dist/page-manifest.json',JSON.stringify(pages.map(page=>({path:page.path,title:page.title,section:page.section??'public',offline:isPublicOffline(page)})),null,2));
 console.log(`Built ${pages.length} pages; ${publicPages.length} public offline routes. Version ${version}.`);

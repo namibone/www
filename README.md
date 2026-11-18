@@ -35,6 +35,6 @@ Sample state uses versioned session storage for the current browser tab only. No
 - [Authentication prerequisites](docs/AUTHENTICATION.md)
 - [Live integration boundaries](docs/INTEGRATIONS.md)
 - [Original artwork provenance](docs/ASSETS.md)
-- [Review evidence](docs/REVIEW.md)
+- [Overhaul review evidence](docs/OVERHAUL-REVIEW.md)
 
 Only `dist/` is published. No secret belongs in this public repository. Sites hosting and unrelated OpenAI runtime integrations are not used; the authorised existing GitHub Pages hosting is retained.

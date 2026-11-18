@@ -31,7 +31,8 @@ test('sample request travels from citizen to staff and back',async({page})=>{
  await expect(page.locator('#wizard-status')).toContainText('Confirm');await page.locator('#request-confirm').check();await page.getByRole('button',{name:'Create sample request'}).click();
  await expect(page.getByRole('heading',{name:'Sample request created'})).toBeVisible();await page.getByRole('link',{name:'Track sample request'}).click();
  await expect(page.locator('#application-detail')).toContainText('DEMO-1004');await expect(page.locator('#application-detail')).toContainText('Received');
- await page.goto('/staff-case.html?id=DEMO-1004');await page.locator('#case-status').selectOption('Completed');await page.getByRole('button',{name:'Save sample status'}).click();
+ await page.goto('/staff-case.html?id=DEMO-1004');await page.locator('#case-status').selectOption('Completed');await page.getByRole('button',{name:'Save sample status'}).focus();await page.keyboard.press('Enter');
+ await expect(page.getByRole('button',{name:'Save sample status'})).toBeFocused();
  await expect(page.locator('#case-update-status')).toContainText('updated');await page.goto('/citizen-application.html?id=DEMO-1004');await expect(page.locator('#application-detail .badge')).toHaveText('Completed');
  await page.goto('/citizen-applications.html');await page.locator('#status-filter').selectOption('Completed');await expect(page.locator('tbody tr')).toHaveCount(2);
 });
@@ -80,4 +81,9 @@ test('unconfigured sign-in, invalid references and corrupted sample state are ho
  await page.goto('/receipt.html?id=unknown');await expect(page.getByRole('heading',{name:'No simulated receipt found'})).toBeVisible();
  await page.goto('/citizen-application.html?id=unknown');await expect(page.getByRole('heading',{name:'Sample request not found'})).toBeVisible();
  await page.evaluate(()=>sessionStorage.setItem('onenam-demo-v2','{broken'));await page.goto('/citizen-dashboard.html');await expect(page.locator('#metric-open')).toHaveText('2');
+});
+test('blocked storage does not promise a persistent request or payment receipt',async({page})=>{
+ await page.addInitScript(()=>{Storage.prototype.setItem=function(){throw new DOMException('Blocked','SecurityError');};});
+ await page.goto('/payment-review.html?id=INV-101');await page.locator('#payment-confirm').check();await page.getByRole('button',{name:'Simulate payment',exact:true}).click();await expect(page).toHaveURL(/payment-review/);await expect(page.locator('#payment-status')).toContainText('no receipt or history can be saved');
+ await page.goto('/citizen-new-application.html');await page.getByRole('button',{name:'Continue'}).click();await page.getByRole('button',{name:'Continue'}).click();await page.locator('#request-confirm').check();await page.getByRole('button',{name:'Create sample request'}).click();await expect(page.locator('#request-result-link')).not.toBeVisible();await expect(page.locator('#wizard-status')).toContainText('cannot be tracked');
 });
