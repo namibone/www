@@ -24,10 +24,24 @@ showConnection();
 addEventListener('online', showConnection);
 addEventListener('offline', showConnection);
 const status = document.querySelector('#offline-status');
+const unavailable = () => {
+  if (status) status.textContent = 'Offline saving is unavailable in this browser. You can still browse while connected.';
+};
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(() => navigator.serviceWorker.ready).then(() => {
+  navigator.serviceWorker.register('/sw.js').then(registration => {
+    const watchInstall = () => {
+      const worker = registration.installing;
+      if (!worker) return;
+      const checkState = () => {
+        if (worker.state === 'redundant' && !registration.active) unavailable();
+      };
+      worker.addEventListener('statechange', checkState);
+      checkState();
+    };
+    registration.addEventListener('updatefound', watchInstall);
+    watchInstall();
+    return navigator.serviceWorker.ready;
+  }).then(() => {
     if (status) status.textContent = 'Public pilot pages saved for offline reading.';
-  }).catch(() => {
-    if (status) status.textContent = 'Offline saving is unavailable in this browser. You can still browse while connected.';
-  });
+  }).catch(unavailable);
 } else if (status) status.textContent = 'This browser does not support offline saving. You can browse while connected.';

@@ -2,13 +2,17 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { load } from 'cheerio';
 import postcss from 'postcss';
+import colorNames from 'color-name';
+import { runInNewContext } from 'node:vm';
 const read = p => readFile(p,'utf8');
 const css = await read('dist/assets/global.css');
 const tokens = await read('dist/assets/tokens.css');
 const declared = new Set();
 postcss.parse(tokens).walkDecls(d => declared.add(d.prop));
 postcss.parse(css).walkDecls(d => {
-  assert(!/#[\da-f]{3,8}\b|\brgba?\(|\bhsla?\(/i.test(d.value), `Use a shared color token: ${d.toString()}`);
+  const literal = d.value.replace(/var\(--[\w-]+\)/g,'');
+  const keyword = (literal.match(/\b[a-z]+\b/gi) || []).some(word=>Object.hasOwn(colorNames,word.toLowerCase()));
+  assert(!keyword && !/#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark|device-cmyk)\(/i.test(literal), `Use a shared color token: ${d.toString()}`);
   for (const [,name] of d.value.matchAll(/var\((--[\w-]+)/g)) assert(declared.has(name), `Undefined token ${name}`);
   if (d.prop === 'font-family') assert(d.value.startsWith('var(--font-'), 'Use shared font tokens');
 });
@@ -57,5 +61,24 @@ assert.equal(home('form').length,0,'No personal-data forms until authentication 
 const sitemap = load(await read('dist/sitemap.xml'),{xml:true});
 for (const f of files.filter(f=>f!=='404.html')) assert(sitemap('loc').toArray().some(e=>sitemap(e).text()===`https://onenam.africa/${f==='index.html'?'':f}`),`Sitemap missing ${f}`);
 const sw = await read('dist/sw.js');
-assert(sw.includes("url.search || !PUBLIC.includes(url.pathname)"),'Offline cache must allowlist only public files without query parameters');
+const handlers = {};
+runInNewContext(sw, {
+  self: { location:{origin:'https://onenam.africa'}, addEventListener:(type,handler)=>{handlers[type]=handler;} },
+  URL,
+  caches: { open:async()=>({match:async()=>new Response('public page')}) },
+  fetch:async()=>new Response('network'),
+});
+const cacheCases = [
+  ['/', 'GET', true], ['/privacy.html','GET',true], ['/assets/global.css','GET',true],
+  ['/?code=sensitive','GET',false], ['/privacy.html?session=sensitive','GET',false],
+  ['/auth/callback','GET',false], ['/api/session','GET',false], ['/unknown.html','GET',false],
+  ['/', 'POST', false], ['https://other.example/','GET',false],
+];
+for (const [path,method,expected] of cacheCases) {
+  let intercepted = false;
+  let response;
+  handlers.fetch({request:{url:new URL(path,'https://onenam.africa').href,method},respondWith:value=>{intercepted=true;response=value;}});
+  assert.equal(intercepted,expected,`Offline cache boundary: ${method} ${path}`);
+  if (response) await response;
+}
 console.log(`Design gate passed: ${files.length} pages, shared tokens, links, metadata, honest auth, offline boundary; ${Math.round(total/1024)} KiB.`);

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readdir } from 'node:fs/promises';
 
 test('all public pages meet automated WCAG AA checks and load without errors', async ({page})=>{
   const errors = [];
@@ -68,7 +69,7 @@ test('reduced motion disables smooth scrolling',async({page})=>{
 test('offline reload and navigation preserve only public content',async({page,context})=>{
   await page.goto('/');
   await expect(page.locator('#offline-status')).toHaveText('Public pilot pages saved for offline reading.');
-  await page.evaluate(()=>navigator.serviceWorker.controller ? Promise.resolve() : new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true})));
+  await expect.poll(()=>page.evaluate(()=>Boolean(navigator.serviceWorker.controller))).toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.locator('#connection-banner')).toBeVisible();
@@ -76,8 +77,33 @@ test('offline reload and navigation preserve only public content',async({page,co
   await page.getByRole('link',{name:'Privacy',exact:true}).click();
   await expect(page.locator('h1')).toHaveText('Your privacy.');
   const keys = await page.evaluate(async()=>{const names=await caches.keys();return (await Promise.all(names.filter(n=>n.startsWith('onenam-')).map(async n=>(await(await caches.open(n)).keys()).map(r=>r.url)))).flat();});
-  expect(keys.length).toBeGreaterThan(10);
-  expect(keys.every(k=>!new URL(k).search && !/^\/(auth|token|callback|api)(\/|$)/.test(new URL(k).pathname))).toBe(true);
+  const expected = ['/', '/manifest.webmanifest', ...(await readdir('dist')).filter(f=>f.endsWith('.html')).map(f=>`/${f}`), ...(await readdir('dist/assets')).map(f=>`/assets/${f}`)];
+  expect(keys.map(k=>new URL(k).pathname).sort()).toEqual(expected.sort());
+  expect(keys.every(k=>!new URL(k).search)).toBe(true);
   const privateResponse = await page.evaluate(async()=>{try {return (await fetch('/auth/callback?code=example')).status;}catch{return 'offline';}});
   expect(privateResponse).toBe('offline');
+  await page.evaluate(async()=>{
+    for(const name of await caches.keys()) if(name.startsWith('onenam-')) await(await caches.open(name)).delete('/privacy.html');
+  });
+  await page.reload();
+  await expect(page.locator('h1')).toHaveText('A starting point, even offline.');
+});
+
+test('failed offline installation is explained without claiming a saved copy',async({page})=>{
+  await page.addInitScript(()=>{
+    const worker = new EventTarget();
+    worker.state = 'installing';
+    const registration = new EventTarget();
+    registration.installing = worker;
+    registration.active = null;
+    Object.defineProperty(navigator,'serviceWorker',{value:{
+      ready:new Promise(()=>{}),
+      register:async()=>{
+        setTimeout(()=>{worker.state='redundant';worker.dispatchEvent(new Event('statechange'));},100);
+        return registration;
+      },
+    }});
+  });
+  await page.goto('/');
+  await expect(page.locator('#offline-status')).toContainText('Offline saving is unavailable');
 });

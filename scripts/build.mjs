@@ -63,12 +63,23 @@ for (const file of precache.filter(p=>p!=='/')) hash.update(await readFile(`dist
 const version = hash.digest('hex').slice(0,16);
 await writeFile('dist/sw.js', `const CACHE = 'onenam-${version}';
 const PUBLIC = ${JSON.stringify(precache)};
-self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PUBLIC))));
+self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(PUBLIC.map(path => new Request(path, { cache: 'reload' }))))));
 self.addEventListener('activate', event => event.waitUntil((async () => { for (const key of await caches.keys()) if (key.startsWith('onenam-') && key !== CACHE) await caches.delete(key); await self.clients.claim(); })()));
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.search || !PUBLIC.includes(url.pathname)) return;
-  event.respondWith(caches.open(CACHE).then(async cache => (await cache.match(url.pathname)) || fetch(event.request)));
+  event.respondWith(caches.open(CACHE).then(async cache => {
+    const saved = await cache.match(url.pathname);
+    if (saved) return saved;
+    try { return await fetch(event.request); }
+    catch (error) {
+      if (event.request.mode === 'navigate') {
+        const fallback = await cache.match('/offline.html');
+        if (fallback) return fallback;
+      }
+      throw error;
+    }
+  }));
 });
 `);
 console.log(`Built ${pages.length} pages. Offline version: ${version}`);
