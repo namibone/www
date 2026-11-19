@@ -1,0 +1,113 @@
+/* Brand values are based on the NamibOne gateway's assets/tokens.css. */
+:root {
+  --sl-font: 'Segoe UI', Arial, sans-serif;
+  --sl-content-width: 46rem;
+  --sl-sidebar-width: 17.5rem;
+  --sl-color-accent-low: #17393c;
+  --sl-color-accent: #70d1c7;
+  --sl-color-accent-high: #a0e7dd;
+  --sl-color-white: #f6f2e9;
+  --sl-color-gray-1: #e7e0d5;
+  --sl-color-gray-2: #d5dde6;
+  --sl-color-gray-3: #bfd0df;
+  --sl-color-gray-4: #91a9bd;
+  --sl-color-gray-5: #465a70;
+  --sl-color-gray-6: #253e54;
+  --sl-color-gray-7: #172f45;
+  --sl-color-black: #10283e;
+  --docs-card: #172f45;
+  --docs-card-hover: #1c3d53;
+  --docs-card-line: #4b667c;
+  --docs-card-focus: #a0e7dd;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #e3f3ef;
+  --sl-color-accent: #096b6d;
+  --sl-color-accent-high: #075356;
+  --sl-color-white: #152d46;
+  --sl-color-gray-1: #253f57;
+  --sl-color-gray-2: #3e5267;
+  --sl-color-gray-3: #526477;
+  --sl-color-gray-4: #637388;
+  --sl-color-gray-5: #b0bdc8;
+  --sl-color-gray-6: #dbe3ea;
+  --sl-color-gray-7: #f6f2e9;
+  --sl-color-black: #fcfaf5;
+  --docs-card: #fff;
+  --docs-card-hover: #e3f3ef;
+  --docs-card-line: #d5e0e3;
+  --docs-card-focus: #125ed2;
+}
+
+.site-title {
+  color: var(--sl-color-white);
+  font-weight: 730;
+  letter-spacing: -.035em;
+}
+
+.hero h1 {
+  font-size: clamp(2.45rem, 6vw, 4.55rem);
+  font-weight: 750;
+  letter-spacing: -.065em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.hero .tagline {
+  max-width: 30rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.hero img {
+  width: 100%;
+  max-width: 36rem;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 1.2rem;
+  outline: 1px solid var(--docs-card-line);
+}
+
+.sl-markdown-content .sl-link-card {
+  padding: 1.3rem 1.15rem;
+  border-color: var(--docs-card-line);
+  border-radius: .9rem;
+  background: var(--docs-card);
+}
+
+.sl-markdown-content .sl-link-card:is(:hover, :focus-within) {
+  border-color: var(--sl-color-accent);
+  background: var(--docs-card-hover);
+}
+
+.sl-markdown-content .sl-link-card:focus-within {
+  outline: 2px solid var(--docs-card-focus);
+  outline-offset: 3px;
+}
+
+.sl-markdown-content h2 {
+  letter-spacing: -.035em;
+}
+
+.sl-markdown-content p,
+.sl-markdown-content li,
+.sl-markdown-content td {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 49.999rem) {
+  .hero {
+    padding-block: 2.25rem 2rem;
+  }
+
+  .hero img {
+    max-width: 22rem;
+  }
+}
+
+@media (min-width: 65rem) {
+  .sl-markdown-content .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
