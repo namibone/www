@@ -12,6 +12,8 @@ This release is a public, service-first prototype. It is not a government system
 | Companion | Responsive prompt UI, local service links, optional browser dictation, pauseable artwork | Approved server-side generative AI endpoint, provider credentials stored outside this repository, explicit data-handling controls and end-to-end validation; see COMPANION-INTEGRATION.md |
 | Identity | Disabled Google/Microsoft/GitHub buttons; distinct public demo links | Follow `AUTHENTICATION.md`; complete real provider E2E tests and publish operator/privacy/support details |
 
+On the NamibOne homepage, **Payments and finances** opens the sample payment area. **Open N1 Wallet preview** opens the separate dashboard at https://n1wallet.net/portal.html. Shared sign-in, balance synchronisation and real payment processing are future integrations.
+
 The payment simulator never asks for a card, account number, OTP or payment credential. Its receipts prominently say they are demonstrations and not proof of payment. No downloadable bank/payment instructions are fabricated. The staff communication composer uses fixed sample templates and audiences; saving affects this tab only.
 
 Public service guidance is available offline after saving. Workspaces and query URLs are excluded from the service worker cache. All future personal and financial API responses must be authenticated, authorised server-side, excluded from caches and served with appropriate no-store headers. GitHub Pages cannot enforce server-side authentication for these static prototype pages.
