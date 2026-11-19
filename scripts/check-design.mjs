@@ -1,15 +1,18 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { sep } from 'node:path';
 import { load } from 'cheerio';
 import postcss from 'postcss';
 import colorNames from 'color-name';
 import { runInNewContext } from 'node:vm';
+import { acknowledgementPath } from '../assets/stakeholder-agreement-shared.js';
 const read = p => readFile(p,'utf8');
 const css = await read('dist/assets/global.css');
+const agreementCss = await read('dist/assets/stakeholder-agreement.css');
 const tokens = await read('dist/assets/tokens.css');
 const declared = new Set();
 postcss.parse(tokens).walkDecls(d => declared.add(d.prop));
-postcss.parse(css).walkDecls(d => {
+for (const stylesheet of [css, agreementCss]) postcss.parse(stylesheet).walkDecls(d => {
   const literal = d.value.replace(/var\(--[\w-]+\)/g,'');
   const keyword = (literal.match(/\b[a-z]+\b/gi) || []).some(word=>Object.hasOwn(colorNames,word.toLowerCase()));
   assert(!keyword && !/#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark|device-cmyk)\(/i.test(literal), `Use a shared color token: ${d.toString()}`);
@@ -21,12 +24,21 @@ assert(css.includes('prefers-reduced-motion: reduce'), 'Reduced motion support i
 assert(css.includes('max-width: 700px'), 'Mobile layout is required');
 assert.equal((await read('CNAME')).trim(),'namibone.com','Preserve production domain');
 assert.equal((await read('dist/CNAME')).trim(),'namibone.com');
-const files = (await readdir('dist')).filter(f=>f.endsWith('.html'));
+const agreementFile = 'forms/index.html';
+const files = (await readdir('dist', { recursive: true })).filter(f=>f.endsWith('.html')).map(f=>f.split(sep).join('/'));
+assert(files.includes(agreementFile), 'The stakeholder agreement must be published at /forms/index.html');
 let total = 0;
-for (const file of [...files,...(await readdir('dist/assets')).map(f=>`assets/${f}`)]) total += (await stat(`dist/${file}`)).size;
-assert(total < 650_000, `Complete prototype page/assets budget exceeded: ${total} bytes`);
+let agreementTotal = 0;
+for (const file of [...files,...(await readdir('dist/assets')).map(f=>`assets/${f}`)]) {
+  const { size } = await stat(`dist/${file}`);
+  total += size;
+  if (file === agreementFile || file.startsWith('assets/stakeholder-agreement')) agreementTotal += size;
+}
+assert(total - agreementTotal < 650_000, `Prototype page/assets budget exceeded: ${total - agreementTotal} bytes`);
+assert(agreementTotal < 32_000, `Stakeholder agreement page/assets budget exceeded: ${agreementTotal} bytes`);
 for (const file of files) {
   const $ = load(await read(`dist/${file}`));
+  const isAgreement = file === agreementFile;
   assert((await stat(`dist/${file}`)).size < 40_000,`${file}: individual page exceeds 40 KB`);
   assert.equal($('html').attr('lang'),'en',`${file}: document language`);
   assert.equal($('h1').length,1,`${file}: exactly one h1`);
@@ -34,20 +46,39 @@ for (const file of files) {
   assert.equal($('link[rel="stylesheet"]').attr('href'),'/assets/global.css',`${file}: shared styles required`);
   assert.equal($('link[rel="icon"][type="image/svg+xml"]').length,1,`${file}: tab icon`);
   assert.equal($('style,[style],[onclick],script:not([src])').length,0,`${file}: no inline styling or scripts`);
-  assert($('meta[http-equiv="Content-Security-Policy"]').attr('content').includes("form-action 'none'"));
+  const policy = $('meta[http-equiv="Content-Security-Policy"]').attr('content');
+  assert(policy.includes("form-action 'none'"));
+  const connect = policy.split(';').find(directive => directive.startsWith('connect-src '));
   assert($('title').text().includes('NamibOne'));
   assert($('meta[name="description"]').attr('content'));
   assert($('a.skip-link[href="#main"]').length);
   assert($('footer').text().includes('Government affiliation and endorsement are not verified.'));
   assert($('.prototype-bar').text().includes('No live government transactions.'));
   assert($('nav[aria-label="Breadcrumb"]').length);
-  assert.equal($('input[type="file"],input[type="email"],input[type="password"],textarea:not(#companion-prompt)').length,0,'Prototype must not collect private records');
+  assert.equal($('input[type="file"],input[type="password"]').length,0,'Never collect documents or credentials');
+  if (isAgreement) {
+    const form = $('#stakeholder-form[method="post"]');
+    assert.equal(form.length, 1, 'The agreement requires a dedicated acknowledgement form');
+    assert.equal(form.attr('action'), undefined, 'Acknowledgements must use the scoped form handler');
+    const endpoint = form.attr('data-endpoint');
+    if (endpoint) {
+      const url = new URL(endpoint);
+      assert.equal(url.protocol, 'https:');
+      assert.equal(endpoint, `${url.origin}${acknowledgementPath}`);
+      assert.equal(connect, `connect-src 'self' ${url.origin}`, 'Limit the destination to the configured handler');
+    } else assert.equal(connect, "connect-src 'self'");
+    assert.equal(form.find('input[type="checkbox"][required]').length, 2, 'Both declarations must be required');
+    assert.equal(form.find('input[name="signature"][required]').length, 1, 'A typed signature is required');
+  } else {
+    assert.equal(connect, "connect-src 'self'", 'The submission handler is scoped to the stakeholder agreement');
+    assert.equal($('input[type="email"],textarea:not(#companion-prompt)').length,0,'Prototype pages must not collect private records');
+  }
   if(file==='index.html'){
     assert.equal($('textarea#companion-prompt[maxlength="1000"]').length,1,'Home must offer the bounded conversation prompt');
     assert.equal($('[data-companion-endpoint]').length,0,'Live AI must not be claimed before its backend is configured');
     assert.equal($('script[src="/assets/companion.js"]').length,1,'Home companion module is required');
     assert.equal($('[data-motion-toggle]').length,1,'Avatar animation requires a pause control');
-  }else assert.equal($('textarea').length,0,'Free-text prompts are limited to the companion home');
+  }else if (!isAgreement) assert.equal($('textarea').length,0,'Free-text prompts are limited to the companion and agreement');
   const ids = $('[id]').map((_,e)=>$(e).attr('id')).get();
   assert.equal(new Set(ids).size,ids.length,`${file}: duplicate IDs`);
   $('img').each((_,e)=>assert($(e).attr('alt') !== undefined,`${file}: image alt required`));
@@ -55,6 +86,10 @@ for (const file of files) {
   for (const el of references) {
     const ref = $(el).attr('src') || $(el).attr('href');
     assert(ref && ref !== '#',`${file}: no placeholder links`);
+    if (ref.startsWith('mailto:')) {
+      assert(isAgreement && el.tagName === 'a' && ref === 'mailto:raydo@skunkworks.africa', `${file}: unexpected email destination`);
+      continue;
+    }
     if (/^https?:/.test(ref)) {
       assert(el.tagName === 'a' || (el.tagName === 'link' && $(el).attr('rel') === 'canonical'),`${file}: no external runtime assets`);
       continue;
@@ -125,6 +160,7 @@ const cacheCases = [
   ['/', 'GET', true], ['/privacy.html','GET',true], ['/assets/global.css','GET',true],
   ['/?code=sensitive','GET',false], ['/privacy.html?session=sensitive','GET',false],
   ['/auth/callback','GET',false], ['/api/session','GET',false], ['/unknown.html','GET',false],
+  ['/forms/index.html','GET',false], ['/forms/','GET',false],
   ['/citizen-dashboard.html','GET',false], ['/staff-cases.html','GET',false], ['/payments.html','GET',false], ['/receipt.html','GET',false],
   ['/', 'POST', false], ['https://other.example/','GET',false],
 ];

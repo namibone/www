@@ -16,7 +16,11 @@ await cp('CNAME','dist/CNAME');
 await writeFile('dist/.nojekyll','');
 const mark='dist/assets/namibone-mark';
 for(const size of [32,180,192,512])await sharp(`${mark}.svg`).resize(size).png().toFile(`${mark}-${size}.png`);
-for(const page of pages)await writeFile(`dist/${page.path==='/'?'index.html':page.path.slice(1)}`,layout(page));
+for (const page of pages) {
+  const file = resolve(output, page.path === '/' ? 'index.html' : page.path.slice(1));
+  await mkdir(dirname(file), { recursive: true });
+  await writeFile(file, layout(page));
+}
 await writeFile('dist/manifest.webmanifest',JSON.stringify({name:'NamibOne digital gateway',short_name:'NamibOne',id:'/',start_url:'/',scope:'/',display:'standalone',background_color:'#f6f2e9',theme_color:'#124f50',description:'Independent public-service prototype for Namibia.',icons:[192,512].map(s=>({src:`/assets/namibone-mark-${s}.png`,sizes:`${s}x${s}`,type:'image/png',purpose:'any'}))},null,2));
 await writeFile('dist/sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${pages.filter(p=>p.path!=='/404.html').map(p=>`<url><loc>https://namibone.com${p.path}</loc></url>`).join('')}</urlset>`);
 await writeFile('dist/robots.txt','User-agent: *\nAllow: /\nSitemap: https://namibone.com/sitemap.xml\n');
