@@ -2,9 +2,9 @@
 
 ## Visual direction
 
-The public landing page opens directly into the companion. The supplied Namibia-inspired character sits beside a prominent, stable prompt on desktop and in a compact welcome region on mobile. Warm sand and cream support the teal action colour; small blue/red/green/gold accents echo the supplied artwork. Six topic links connect the conversation entry to existing journeys. The desktop rail remains available; mobile adds three bottom navigation links. Inner service pages retain the compact navy/teal interface for structured tasks. The existing OneNam identity and namibone.com domain are retained.
+The public landing page uses the supplied square NamibOne Companion scene. A two-line title, six welcome bubbles, a voice and text composer, and the values row follow the reference at desktop sizes. The menu opens over the scene. Mobile keeps a square artwork and composer, moves the bubbles into two columns, and retains the bottom navigation. Inner pages use the compact navy and teal service layout.
 
-Only the artwork moves in a slow ten-second CSS loop. A visible pause button stops it; reduced-motion disables it automatically. There is no autoplay speech or microphone request. The wireframe gallery at /companion-wireframes.html documents both layouts; editable SVG sources are in docs/wireframes/.
+Only the artwork moves in a subtle CSS loop. The pause control below the scene and the device’s reduced-motion setting both stop it. Dictation starts on request. The wireframe gallery at /companion-wireframes.html records the earlier concept. Editable SVG sources are in docs/wireframes/.
 
 Shared colors, fonts and dimensions live in `assets/tokens.css`; components and responsive rules live in `assets/global.css`. Page content is authored in `scripts/pages.mjs` and rendered through `scripts/ui.mjs`. There are no remote fonts or third-party runtime requests. Hover and entry transitions are brief and disabled for reduced motion. Charts include accessible summaries and text/tabular values. No decorative animation blocks a task.
 

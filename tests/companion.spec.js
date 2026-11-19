@@ -173,6 +173,45 @@ test.describe('companion landing',()=>{
   await expect(page.locator('#companion-status')).toContainText('Review your question');
  });
 
+ test('artwork, title, topic bubbles and composer follow the homepage reference',async({page},info)=>{
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.setViewportSize({width:960,height:960});
+  await page.goto('/');
+  const scene=page.locator('.companion-scene');
+  const title=page.getByRole('heading',{name:'NamibOne Companion',exact:true});
+  const topics=page.locator('#companion-welcome');
+  const services=topics.getByRole('link',{name:'Information and services'});
+  const learning=topics.getByRole('link',{name:'Learning and career'});
+  const composer=page.locator('#companion-form');
+  const artwork=scene.getByRole('img');
+  await expect(artwork).toBeVisible();
+  expect(await artwork.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  await expect(topics.getByRole('link')).toHaveCount(5);
+  await expect(topics.getByRole('link',{name:'Payments and finances'})).toHaveAttribute('href','/payments.html');
+  await expect(topics.getByRole('link',{name:'Community and civic life'})).toHaveAttribute('href','/department-community.html');
+  await expect(topics.getByRole('link',{name:'Places and local support'})).toHaveAttribute('href','/department-local.html');
+  expect((await title.boundingBox()).x).toBeGreaterThan(480);
+  expect((await services.boundingBox()).x).toBeLessThan(480);
+  expect((await learning.boundingBox()).x).toBeGreaterThan(480);
+  const prompt=await composer.boundingBox();
+  expect(prompt.y).toBeGreaterThan(720);
+  expect(prompt.y+prompt.height).toBeLessThan(850);
+  await scene.screenshot({path:info.outputPath('companion-reference-960.png')});
+
+  const menu=page.getByRole('button',{name:'Open navigation'});
+  await menu.click();
+  await expect(page.getByRole('link',{name:'Finance & N1 Wallet'})).toHaveAttribute('href','https://n1wallet.net/');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeFocused();
+
+  await page.setViewportSize({width:390,height:844});
+  await expect(composer).toBeVisible();
+  const art=await artwork.boundingBox();
+  expect((await services.boundingBox()).y).toBeGreaterThanOrEqual(art.y+art.height);
+  await learning.click();
+  await expect(page).toHaveURL(/department-education\.html$/);
+ });
+
  test('first arrival keeps the prompt visible on mobile and desktop',async({page},info)=>{
   for(const viewport of [{width:320,height:780},{width:390,height:844},{width:1440,height:1000}]){
    await page.setViewportSize(viewport);
