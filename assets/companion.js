@@ -24,12 +24,14 @@ function initialiseCompanion(root) {
   const MAX_TURNS = 30;
   const media = matchMedia('(prefers-reduced-motion: reduce)');
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const keyboardHint = 'Use the microphone on your keyboard or type your question.';
+  const voiceLabel = Recognition ? 'Dictate your question' : 'Use keyboard dictation';
   let turns = [];
   let generation = 0;
   let pending = false;
   let controller;
   let recognition;
-  let listening = false;
+  let finishingDictation = false;
   let motionPaused = media.matches;
 
   input.maxLength = MAX_LENGTH;
@@ -39,7 +41,7 @@ function initialiseCompanion(root) {
     pending = value;
     send.disabled = value;
     form.setAttribute('aria-busy', String(value));
-    if (voice) voice.disabled = value || !Recognition;
+    if (voice) voice.disabled = value;
   };
 
   function applyMotion() {
@@ -128,17 +130,19 @@ function initialiseCompanion(root) {
   }
   function serviceLink(service) { return {label:service.name,href:`/service-${service.id}.html`}; }
 
-  function stopDictation() {
-    listening = false;
+  function resetDictation(cancel = true) {
     const previous = recognition;
     recognition = undefined;
+    finishingDictation = false;
     if (previous) {
-      previous.onresult = previous.onerror = previous.onend = null;
-      try { previous.abort(); } catch { /* Already stopped. */ }
+      previous.onstart = previous.onresult = previous.onerror = previous.onend = null;
+      if (cancel) {
+        try { previous.abort(); } catch { /* Already stopped. */ }
+      }
     }
     if (voice) {
-      voice.setAttribute('aria-pressed', 'false');
-      voice.setAttribute('aria-label', Recognition ? 'Dictate your question' : 'Voice input unavailable in this browser');
+      if (Recognition) voice.setAttribute('aria-pressed', 'false');
+      voice.setAttribute('aria-label', voiceLabel);
     }
   }
 
@@ -162,7 +166,7 @@ function initialiseCompanion(root) {
       newChat?.focus();
       return;
     }
-    stopDictation();
+    resetDictation();
     const token = generation;
     const history = turns.slice(-10).map(({role,content}) => ({role,content}));
     turns.push({role:'user',content:text});
@@ -230,7 +234,7 @@ function initialiseCompanion(root) {
     generation++;
     controller?.abort();
     controller = undefined;
-    stopDictation();
+    resetDictation();
     turns = [];
     messages.replaceChildren();
     conversation.hidden = true;
@@ -250,55 +254,82 @@ function initialiseCompanion(root) {
   });
 
   if (voice) {
-    voice.disabled = !Recognition;
-    voice.setAttribute('aria-pressed', 'false');
-    voice.setAttribute('aria-label', Recognition ? 'Dictate your question' : 'Voice input unavailable in this browser');
-    voice.title = Recognition ? 'Dictation uses your browser’s speech service. Review the text before sending.' : 'Voice input is not supported here. You can type your question.';
+    voice.disabled = false;
+    resetDictation();
+    voice.title = Recognition ? 'Dictation uses your browser’s speech service. Review the text before sending.' : keyboardHint;
     voice.addEventListener('click', () => {
-      if (pending || !Recognition) return;
-      if (listening) { stopDictation(); setStatus('Dictation stopped. Review your question before sending.'); return; }
-      stopDictation();
-      const current = new Recognition();
-      recognition = current;
-      current.lang = 'en-ZA';
-      current.continuous = false;
-      current.interimResults = false;
-      current.maxAlternatives = 1;
-      current.onresult = event => {
-        if (recognition !== current) return;
-        const prefix = input.value.trim();
-        const dictated = Array.from(event.results).slice(event.resultIndex || 0).filter(result => result.isFinal).map(result => result[0].transcript).join(' ');
-        input.value = `${prefix}${prefix ? ' ' : ''}${dictated}`.slice(0, MAX_LENGTH);
-        input.dispatchEvent(new Event('input', {bubbles:true}));
-        setStatus('Dictation added. Review your question, then send it.');
+      if (pending || finishingDictation) return;
+      if (!Recognition) {
+        setStatus(keyboardHint);
         input.focus();
-      };
-      current.onerror = event => {
-        if (recognition !== current) return;
-        stopDictation();
-        setStatus(event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'Microphone access was not allowed. You can type your question instead.' : 'Dictation is unavailable right now. You can type your question instead.');
-      };
-      current.onend = () => {
-        if (recognition !== current) return;
-        stopDictation();
-        if (status.textContent.startsWith('Listening')) setStatus('Dictation stopped. You can try again or type your question.');
-      };
+        return;
+      }
+      if (recognition) {
+        finishingDictation = true;
+        setStatus('Finishing dictation…');
+        try { recognition.stop(); } catch {
+          resetDictation();
+          setStatus(`Dictation ended early. ${keyboardHint}`);
+        }
+        return;
+      }
       try {
-        current.start();
-        listening = true;
+        const current = new Recognition();
+        recognition = current;
+        let hasTranscript = false;
+        current.lang = 'en-ZA';
+        current.continuous = false;
+        current.interimResults = false;
+        current.maxAlternatives = 1;
+        current.onstart = () => {
+          if (recognition === current && !finishingDictation) {
+            setStatus('Listening through your browser’s speech service. Review your text before sending.');
+          }
+        };
+        current.onresult = event => {
+          if (recognition !== current) return;
+          const dictated = Array.from(event.results).slice(event.resultIndex ?? 0)
+            .filter(result => result.isFinal).map(result => result[0].transcript).join(' ').trim();
+          if (!dictated) return;
+          hasTranscript = true;
+          const prefix = input.value.trim();
+          input.value = `${prefix}${prefix ? ' ' : ''}${dictated}`.slice(0, MAX_LENGTH);
+          input.dispatchEvent(new Event('input', {bubbles:true}));
+          setStatus('Dictation added. Review your question, then send it.');
+          input.focus();
+        };
+        current.onerror = event => {
+          if (recognition !== current) return;
+          resetDictation();
+          const reasons = {
+            'not-allowed': 'Your browser did not allow dictation. Check microphone access for NamibOne.',
+            'service-not-allowed': 'This browser could not start its speech service.',
+            'audio-capture': 'The browser could not access a microphone.',
+            'no-speech': 'No speech was detected.',
+            'network': 'The browser could not reach its speech service.',
+            'language-not-supported': 'The browser’s speech service could not use the selected language.',
+          };
+          setStatus(`${reasons[event.error] ?? 'Dictation is unavailable right now.'} Tap the question box. ${keyboardHint}`);
+        };
+        current.onend = () => {
+          if (recognition !== current) return;
+          resetDictation(false);
+          if (!hasTranscript) setStatus(`No speech was captured. Tap the question box. ${keyboardHint}`);
+        };
         voice.setAttribute('aria-pressed','true');
         voice.setAttribute('aria-label','Stop dictation');
-        setStatus('Listening through your browser’s speech service. Your question will not be sent automatically.');
+        setStatus('Starting dictation. Allow microphone access if your browser asks.');
+        current.start();
       } catch {
-        stopDictation();
-        setStatus('Dictation could not start. You can type your question instead.');
+        resetDictation();
+        setStatus(`Dictation could not start. Tap the question box. ${keyboardHint}`);
       }
     });
   }
-  addEventListener('pagehide', () => { generation++; controller?.abort(); stopDictation(); });
+  addEventListener('pagehide', () => { generation++; controller?.abort(); resetDictation(); });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && listening) {
-      stopDictation();
+    if (document.hidden && recognition) {
+      resetDictation();
       setStatus('Dictation stopped when you left the page. Review your question before sending.');
     }
   });
