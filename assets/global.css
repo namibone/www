@@ -15,15 +15,23 @@
 /* The square scene retains the composition of the supplied NamibOne artwork. */
 .companion-home { background:var(--color-sand); }
 .companion-home .workspace-layout { position:relative; display:block; max-width:none; min-height:0; }
-.companion-home .topbar { position:relative; z-index:21; height:0; min-height:0; padding:0; border:0; }
+.companion-home .topbar {
+  position:relative; z-index:21; min-height:4rem; padding:.5rem clamp(.75rem,3vw,2rem);
+  background:var(--color-sand-soft); border-color:var(--color-sand-deep);
+}
+.companion-home .topbar .action-row { flex-wrap:nowrap; }
+.companion-home .brand { color:var(--color-teal-ink); }
+.companion-home .top-wallet {
+  display:inline-flex; align-items:center; gap:.4rem; min-height:44px; padding:0 .5rem;
+  color:var(--color-teal-ink); white-space:nowrap;
+}
 .has-js .companion-home .mobile-toggle {
-  position:absolute; inset:1rem auto auto 1rem; display:grid; place-items:center;
-  border-radius:var(--radius-pill); color:var(--color-scene-teal); background:var(--color-scene-fog);
-  box-shadow:0 3px 14px var(--color-scene-shadow);
+  display:grid; place-items:center; flex:none;
+  color:var(--color-teal-ink); background:var(--color-sand-soft);
 }
 .companion-home .sidebar { background:var(--color-sand-soft); gap:1rem; }
 .has-js .companion-home .sidebar {
-  display:none; position:absolute; z-index:20; inset:4.25rem auto auto 1rem;
+  display:none; position:absolute; z-index:20; inset:.4rem auto auto 1rem;
   width:min(20rem,calc(100% - 2rem)); max-height:calc(100svh - 5rem); overflow:auto;
   padding:1rem; border:1px solid var(--color-line); border-radius:var(--radius-card);
   box-shadow:0 12px 32px var(--color-scene-shadow);
@@ -44,7 +52,7 @@
 }
 .companion-scene {
   position:relative; container-type:inline-size;
-  width:min(100%,max(43rem,100svh),70rem); aspect-ratio:1;
+  width:min(100%,max(43rem,calc(100svh - 4rem)),70rem); aspect-ratio:1;
 }
 .companion-art { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
 .companion-character {
@@ -226,8 +234,8 @@
 .wireframe-grid{display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start}.wireframe-grid figure{margin:0}.wireframe-grid img{width:100%;height:auto;border:1px solid var(--color-line);border-radius:.7rem;background:var(--color-white)}.wireframe-grid figcaption{font-size:.78rem;padding:.8rem 0;color:var(--color-muted)}
 
 @media (max-width: 700px) {
-  .has-js .companion-home .mobile-toggle { inset:.7rem auto auto .75rem; }
-  .has-js .companion-home .sidebar { inset:3.85rem auto auto .75rem; }
+  .has-js .companion-home .sidebar { inset:.4rem auto auto .75rem; }
+  .companion-home .top-wallet { display:none; }
   .companion-stage { background:var(--color-sand); }
   .companion-stage::before { display:none; }
   .companion-scene {
@@ -272,14 +280,15 @@
   .companion-preview-actions { gap:.7rem; }
   .companion-home .footer { padding-bottom:calc(5.4rem + env(safe-area-inset-bottom)); }
   .companion-mobile-nav {
-    display:flex; position:fixed; bottom:0; left:0; right:0; z-index:10; justify-content:space-around;
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.2rem;
+    position:fixed; bottom:0; left:0; right:0; z-index:10;
     background:var(--color-sand-soft); border-top:1px solid var(--color-sand-deep);
     padding:.4rem .6rem calc(.4rem + env(safe-area-inset-bottom));
     box-shadow:0 -4px 20px var(--color-shadow);
   }
   .companion-mobile-nav a {
-    display:grid; justify-items:center; gap:.2rem; min-width:76px; min-height:45px;
-    text-decoration:none; font-size:.68rem; color:var(--color-muted);
+    display:grid; justify-items:center; gap:.2rem; min-height:45px;
+    text-decoration:none; text-align:center; font-size:.68rem; color:var(--color-muted);
   }
   .companion-mobile-nav a[aria-current] { color:var(--color-scene-teal); font-weight:700; }
   .wireframe-grid { grid-template-columns:1fr; }

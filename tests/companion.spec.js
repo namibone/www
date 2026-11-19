@@ -199,12 +199,16 @@ test.describe('companion landing',()=>{
   await scene.screenshot({path:info.outputPath('companion-reference-960.png')});
 
   const menu=page.getByRole('button',{name:'Open navigation'});
+  await expect(page.getByRole('navigation',{name:'Header navigation'}).getByRole('link',{name:'N1 Wallet',exact:true})).toHaveAttribute('href','https://n1wallet.net/');
   await menu.click();
-  await expect(page.getByRole('link',{name:'Finance & N1 Wallet'})).toHaveAttribute('href','https://n1wallet.net/');
+  await expect(page.getByRole('navigation',{name:'Explore NamibOne'}).getByRole('link',{name:'N1 Wallet',exact:true})).toHaveAttribute('href','https://n1wallet.net/');
   await page.keyboard.press('Escape');
   await expect(menu).toBeFocused();
 
   await page.setViewportSize({width:390,height:844});
+  const mobileWallet=page.getByRole('navigation',{name:'Mobile navigation'}).getByRole('link',{name:'N1 Wallet',exact:true});
+  await expect(mobileWallet).toBeVisible();
+  await expect(mobileWallet).toHaveAttribute('href','https://n1wallet.net/');
   await expect(composer).toBeVisible();
   const art=await artwork.boundingBox();
   expect((await services.boundingBox()).y).toBeGreaterThanOrEqual(art.y+art.height);
