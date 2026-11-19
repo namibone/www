@@ -7,11 +7,11 @@ const symbol = (name) => {
 const shortcut=(title,description,path,name,tone='')=>`<a class="companion-shortcut ${tone}" href="${path}"><span class="shortcut-icon">${icon(name)}</span><span><strong>${title}</strong><small>${description}</small></span>${icon('arrow')}</a>`;
 
 export const companionHome = `
-<section class="companion-stage" data-companion aria-label="OneNam companion">
+<section class="companion-stage" data-companion id="companion" aria-label="NamibOne Companion">
  <div class="companion-landscape" aria-hidden="true"></div>
  <div class="companion-content">
-  <div class="companion-heading"><span class="companion-eyebrow">${symbol('spark')} YOUR NAMIBIAN COMPANION</span><h1>Hello, Namibia.<br><span>How can I help?</span></h1></div>
-  <div id="companion-welcome"><p class="companion-intro">A little guidance. A new opportunity.<br>Your next step starts with a conversation.</p></div>
+  <div class="companion-heading"><span class="companion-eyebrow">${symbol('spark')} NAMIBONE · EVERYTHING NAMIBIA</span><h1>People. Opportunities.<br><span>A brighter tomorrow.</span></h1></div>
+  <div id="companion-welcome"><p class="companion-intro">Your everyday platform for a better Namibia.<br>Ask your NamibOne Companion or explore the services below.</p></div>
   <section id="companion-conversation" aria-label="Your conversation" hidden><div id="companion-messages" role="log" aria-label="Conversation messages" aria-live="polite" aria-relevant="additions"></div></section>
   <form id="companion-form" class="companion-composer" aria-label="Ask your companion">
    <label class="sr-only" for="companion-prompt">What would you like help with?</label>
@@ -21,14 +21,14 @@ export const companionHome = `
   <p id="companion-status" class="companion-status" role="status" aria-live="polite">Explore the preview with a question. Please leave out personal details.</p>
   <div class="starter-prompts" aria-label="Ideas to get started"><button type="button" data-prompt="Help me renew my identity document">Renew my ID ${icon('arrow')}</button><button type="button" data-prompt="Find learning opportunities">Find learning opportunities ${icon('arrow')}</button><button type="button" data-prompt="How can I start a small business?">Start a business ${icon('arrow')}</button></div>
  </div>
- <figure id="companion-art" class="companion-art"><div class="companion-halo" aria-hidden="true"></div><img class="companion-character" src="/assets/namib-companion.webp" alt="Your friendly Namibian companion in a teal and cream outfit, offering a welcoming hand" width="680" height="907" fetchpriority="high"><figcaption><span class="companion-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i></span><strong>Here for your next step.</strong><span>People. Possibilities. Namibia.</span></figcaption></figure><button class="motion-control" type="button" data-motion-toggle aria-pressed="false">${symbol('pause')}<span data-motion-label>Pause motion</span></button>
+ <figure id="companion-art" class="companion-art"><div class="companion-halo" aria-hidden="true"></div><img class="companion-character" src="/assets/namib-companion.webp" alt="Your friendly Namibian companion in a teal and cream outfit, offering a welcoming hand" width="680" height="907" fetchpriority="high"><figcaption><span class="companion-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i></span><strong>NamibOne Companion</strong><span>Ask in your language.</span></figcaption></figure><button class="motion-control" type="button" data-motion-toggle aria-pressed="false">${symbol('pause')}<span data-motion-label>Pause motion</span></button>
 </section>
-<section class="companion-explore" aria-labelledby="companion-explore-title"><div class="section-head"><div><span class="eyebrow">A PLACE TO BEGIN</span><h2 id="companion-explore-title">What brings you here today?</h2></div><a href="/services.html">Browse services ${icon('arrow')}</a></div><nav class="companion-shortcut-grid" aria-label="Explore by topic">
- ${shortcut('Services & documents','Find a clearer next step','/services.html','identity')}
- ${shortcut('Learning & careers','Grow your possibilities','/department-education.html','book','blue')}
- ${shortcut('Business & livelihoods','Turn ideas into action','/department-business.html','briefcase','warm')}
+<section class="companion-explore" aria-labelledby="companion-explore-title"><div class="section-head"><div><span class="eyebrow">A PLACE TO BEGIN</span><h2 id="companion-explore-title">Explore everything Namibia.</h2></div><a href="/services.html">Browse services ${icon('arrow')}</a></div><nav class="companion-shortcut-grid" aria-label="Explore by topic">
+ ${shortcut('Government services','Access information and essential services','/services.html','identity')}
+ ${shortcut('Learning & careers','Learn, grow and succeed','/department-education.html','book','blue')}
+ ${shortcut('Farming & markets','Grow, trade and thrive','/department-business.html','briefcase','warm')}
  ${shortcut('Places & local help','Start with your community','/department-local.html','pin','earth')}
- ${shortcut('Payments & accounts','Explore the sample workspace','/payments.html','wallet','blue')}
+ ${shortcut('Finance & N1 Wallet','Explore the wallet preview','https://n1wallet.net/','wallet','blue')}
  ${shortcut('Community & support','Find guidance and support','/department-community.html','people')}
  </nav></section>
 <section class="companion-browse" aria-label="Search the service directory"><div><strong>Prefer to browse?</strong><p>Find a service by name in the preview directory.</p></div>${search('gateway-search','Search the service directory…')}</section>

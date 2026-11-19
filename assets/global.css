@@ -121,3 +121,16 @@
 
 .companion-message-author{font-size:.65rem;font-weight:700;letter-spacing:.02em;color:var(--color-teal-ink);margin:0 0 .3rem}.companion-message-content{margin:.3rem 0}.companion-result-links{list-style:none;padding:0}.companion-result-links li{margin:0}
 @media (max-width: 700px){.has-conversation>.motion-control{display:none}}
+
+/* NamibOne companion interaction and responsive quality refinements. */
+.companion-home .companion-stage{isolation:isolate}
+.companion-home .companion-content{position:relative;z-index:2;min-width:0}
+.companion-home .companion-art{pointer-events:none}
+.companion-home .motion-control{pointer-events:auto}
+.companion-home .companion-composer{position:relative;z-index:3}
+.companion-home .companion-shortcut:focus-visible,.companion-home .starter-prompts button:focus-visible,.companion-home .companion-mobile-nav a:focus-visible{outline:3px solid var(--color-focus);outline-offset:3px}
+.companion-home .companion-shortcut{min-height:76px}
+.companion-home .companion-mobile-nav a{min-height:44px}
+@media(max-width:700px){.companion-home .companion-content{padding-bottom:1.5rem}.companion-home .companion-shortcut{min-height:80px}.companion-home .starter-prompts button{min-height:44px}.companion-home .motion-control{min-height:44px}.companion-home .companion-composer{margin-top:.7rem}.companion-home .companion-art{pointer-events:none}.companion-home .companion-mobile-nav a{min-height:48px}}
+@media(max-width:390px){.companion-home .companion-shortcut-grid{grid-template-columns:1fr}.companion-home .companion-shortcut{min-height:64px}.companion-home .companion-heading h1{max-width:70%}}
+@media(prefers-reduced-motion:reduce){.companion-home .companion-shortcut,.companion-home .companion-character{animation:none!important;transition:none!important}}
