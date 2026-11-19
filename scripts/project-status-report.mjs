@@ -82,7 +82,7 @@ async function writePdf(path) {
       if (item.completedOn) metadata.push(`Completed ${displayDate(item.completedOn)}`);
       if (item.suggestedOwner) metadata.push(`Suggested role ${item.suggestedOwner}`);
       const metaLine = metadata.join(' | ');
-      const detail = `${states[item.state]}. ${item.detail}`;
+      const detail = `${item.milestone ? 'Milestone | ' : ''}${states[item.state]}. ${item.detail}`;
       const requirement = `Requirement. ${item.requirement}`;
       const textOptions = { width: width(), lineGap: 2 };
       const titleHeight = document.font('Helvetica-Bold').fontSize(12).heightOfString(item.title, textOptions);

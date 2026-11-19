@@ -4,6 +4,7 @@ const filters = document.querySelector('#status-filters');
 const stage = document.querySelector('#stage-filter');
 const state = document.querySelector('#work-status-filter');
 const missing = document.querySelector('#missing-assignment-filter');
+const milestone = document.querySelector('#milestone-filter');
 const rows = [...document.querySelectorAll('[data-item-stage]')];
 const count = document.querySelector('#status-item-count');
 const empty = document.querySelector('#status-empty');
@@ -13,7 +14,8 @@ function applyFilters() {
     const matchesStage = stage.value === 'all' || row.dataset.itemStage === stage.value;
     const matchesState = state.value === 'all' || row.dataset.itemState === state.value;
     const matchesAssignment = !missing.checked || row.dataset.needsAssignment === 'true';
-    row.hidden = !(matchesStage && matchesState && matchesAssignment);
+    const matchesMilestone = !milestone.checked || row.hasAttribute('data-milestone');
+    row.hidden = !(matchesStage && matchesState && matchesAssignment && matchesMilestone);
     return !row.hidden;
   }).length;
   count.textContent = `Showing ${visible} of ${rows.length} work items`;
@@ -27,6 +29,7 @@ for (const link of document.querySelectorAll('[data-show-stage]')) {
     stage.value = link.dataset.showStage;
     state.value = 'all';
     missing.checked = false;
+    milestone.checked = false;
     applyFilters();
   });
 }

@@ -11,6 +11,8 @@ test('the mobile work register filters stages, blockers and assignment gaps', as
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const rows = page.locator('[data-item-stage]:visible');
   await expect(rows).toHaveCount(work.length);
+  await page.getByLabel('Milestones only').check();
+  await expect(rows).toHaveCount(work.filter(item => item.milestone).length);
 
   await page.getByRole('link', { name: 'View Pilot readiness work' }).click();
   await expect(page.getByLabel('Stage', { exact: true })).toHaveValue('readiness');

@@ -31,7 +31,7 @@ export const work = [
     id: 'gateway', stage: 'foundation', state: 'completed', title: 'Service gateway and offline reading',
     detail: 'The public gateway, service directory and offline reference content are published.',
     requirement: 'Keep essential guidance available on a phone and under poor connectivity.',
-    owner: '@burnt-exe', completedOn: '2026-11-18',
+    milestone: true, owner: '@burnt-exe', completedOn: '2026-11-18',
     source: { label: 'Gateway release', url: 'https://github.com/namibone/www/pull/1' },
   },
   {
@@ -45,7 +45,7 @@ export const work = [
     id: 'guides', stage: 'foundation', state: 'completed', title: 'NamibOne Docs and quickstarts',
     detail: 'The published Docs cover citizen, staff, wallet and developer tasks with search and help.',
     requirement: 'Provide task-based onboarding and troubleshooting for the published preview.',
-    completedOn: '2026-11-19',
+    milestone: true, completedOn: '2026-11-19',
     source: { label: 'NamibOne Docs', url: 'https://namibone.com/docs/' },
   },
   {
@@ -66,14 +66,14 @@ export const work = [
     id: 'wallet-preview', stage: 'prototype', state: 'completed', title: 'Responsive N1 Wallet preview',
     detail: 'The wallet homepage and dashboard reflow on phones and show sample balance, activity and action previews.',
     requirement: 'Make the demo balance, transactions and help reachable on narrow screens.',
-    completedOn: '2026-11-19',
+    milestone: true, completedOn: '2026-11-19',
     source: { label: 'Wallet dashboard preview', url: 'https://n1wallet.net/portal.html' },
   },
   {
     id: 'agreement', stage: 'prototype', state: 'completed', title: 'Stakeholder agreement and signed email draft',
     detail: 'The agreement, scope, disclosures and typed acceptance are published with a manually sent email draft.',
     requirement: 'Record the accepted version, capacity, declaration and typed name.',
-    completedOn: '2026-11-19',
+    milestone: true, completedOn: '2026-11-19',
     source: { label: 'Stakeholder agreement', url: 'https://namibone.com/forms/index.html' },
   },
   {
@@ -121,7 +121,7 @@ export const work = [
     id: 'pilot-schedule', stage: 'readiness', state: 'blocked', title: 'Pilot assignments and schedule',
     detail: 'The published delivery records have no pilot start date or named workstream owners for the open items.',
     requirement: 'Confirm the accountable sponsor, workstream owners, review dates and a pilot go/no-go meeting.',
-    suggestedOwner: 'Pilot coordination lead',
+    milestone: true, suggestedOwner: 'Pilot coordination lead',
   },
   {
     id: 'device-qa', stage: 'readiness', state: 'planned', title: 'Device, accessibility and language acceptance',
@@ -141,20 +141,20 @@ export const work = [
     id: 'pilot-run', stage: 'pilot', state: 'planned', title: 'Participant pilot and findings review',
     detail: 'The pilot session depends on readiness approval and a confirmed participant plan.',
     requirement: 'Run the agreed scenarios, measure completion and accessibility, triage findings and record the next release decision.',
-    suggestedOwner: 'Pilot delivery lead',
+    milestone: true, suggestedOwner: 'Pilot delivery lead',
   },
   {
     id: 'production-platform', stage: 'production', state: 'planned', title: 'Production portal and Companion integrations',
     detail: 'The public portal uses prototype service data and guided help.',
     requirement: 'Confirm service and sign-in approvals, production data controls, support and any generative Companion backend.',
-    suggestedOwner: 'Platform product and security leads',
+    milestone: true, suggestedOwner: 'Platform product and security leads',
     source: { label: 'Production boundaries', url: 'https://github.com/namibone/www/blob/main/docs/INTEGRATIONS.md' },
   },
   {
     id: 'production-wallet', stage: 'production', state: 'planned', title: 'Live wallet operating approval',
     detail: 'N1 Wallet displays demo balances and activity.',
     requirement: 'Confirm the operating scope and required approvals, and validate ledger integrity, reconciliation, identity and support before live use.',
-    suggestedOwner: 'Wallet operations and governance leads',
+    milestone: true, suggestedOwner: 'Wallet operations and governance leads',
     source: { label: 'Wallet pilot guidance', url: 'https://namibone.com/docs/n1-wallet/' },
   },
 ];
@@ -227,7 +227,7 @@ export function createDevelopmentReport() {
     const progress = stageProgress(stage);
     lines.push(`## ${stage.name}`, '', `${states[progress.state]}. ${progress.completed} of ${progress.items.length} complete. ${stage.goal}`, '');
     for (const item of progress.items) {
-      lines.push(`### ${item.title}`, '', `**${states[item.state]}**. ${item.detail}`, '',
+      lines.push(`### ${item.title}`, '', `**${item.milestone ? 'Milestone · ' : ''}${states[item.state]}**. ${item.detail}`, '',
         `- Owner: ${ownerLabel(item)}`,
         `- Deadline: ${deadlineLabel(item)}`);
       if (item.suggestedOwner) lines.push(`- Suggested role: ${item.suggestedOwner}`);

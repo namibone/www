@@ -25,8 +25,8 @@ const stageCards = stages.map(stage => {
 const workRows = work.map(item => {
   const stage = stages.find(entry => entry.id === item.stage);
   const needs = item.state !== 'completed' && (!item.owner || !item.deadline);
-  return `<tr role="row" data-item-stage="${item.stage}" data-item-state="${item.state}" data-needs-assignment="${needs}">
-    <th scope="row" role="rowheader"><strong>${escape(item.title)}</strong><span class="status-work-stage">${escape(stage.name)}</span><p>${escape(item.detail)}</p>${item.source ? link(item.source.label, item.source.url) : ''}</th>
+  return `<tr role="row" data-item-stage="${item.stage}" data-item-state="${item.state}" data-needs-assignment="${needs}"${item.milestone ? ' data-milestone' : ''}>
+    <th scope="row" role="rowheader"><strong>${escape(item.title)}</strong><span class="status-work-stage">${escape(stage.name)}${item.milestone ? ' · Milestone' : ''}</span><p>${escape(item.detail)}</p>${item.source ? link(item.source.label, item.source.url) : ''}</th>
     <td role="cell"><span class="status-mobile-label" aria-hidden="true">Status</span>${stateChip(item.state)}</td>
     <td role="cell"><span class="status-mobile-label" aria-hidden="true">Assignment</span>${escape(ownerLabel(item))}${item.suggestedOwner ? `<span class="status-field-note">Suggested role<br>${escape(item.suggestedOwner)}</span>` : ''}</td>
     <td role="cell"><span class="status-mobile-label" aria-hidden="true">Deadline</span>${escape(deadlineLabel(item))}${item.completedOn ? `<span class="status-field-note">Completed ${time(item.completedOn)}</span>` : ''}</td>
@@ -84,11 +84,12 @@ export const projectStatusPage = {
   </div>
 
   <section class="panel status-register" id="work-register" aria-labelledby="register-title">
-    <div class="status-heading"><h2 id="register-title">Work register</h2><span>Assignments and dates reflect published commitments.</span></div>
+    <div class="status-heading"><h2 id="register-title">Milestones and assignments</h2><span>Assignments and dates reflect published commitments.</span></div>
     <div class="status-filters" id="status-filters" hidden>
       <div class="field"><label for="stage-filter">Stage</label><select id="stage-filter"><option value="all">All stages</option>${stages.map(s => `<option value="${s.id}">${escape(s.name)}</option>`).join('')}</select></div>
       <div class="field"><label for="work-status-filter">Status</label><select id="work-status-filter"><option value="all">All statuses</option>${Object.entries(states).map(([key, label]) => `<option value="${key}">${label}</option>`).join('')}</select></div>
       <label class="choice"><input type="checkbox" id="missing-assignment-filter"> Needs an owner or deadline</label>
+      <label class="choice"><input type="checkbox" id="milestone-filter"> Milestones only</label>
     </div>
     <p id="status-item-count" class="status-result" role="status">${work.length} work items</p>
     <div class="status-table-wrap">
