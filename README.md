@@ -8,7 +8,7 @@ All records, department groupings, requirements, metrics and fees are illustrati
 
 ## Companion-first landing
 
-The root page opens directly into a responsive conversation interface with a large prompt, optional browser dictation, six topic shortcuts and the supplied NamibOne-inspired companion character. The artwork has slow CSS motion, an explicit pause control and reduced-motion support. Desktop keeps a navigation rail; mobile adds bottom navigation. No sign-in wall blocks the first screen.
+The root page opens on the supplied NamibOne Companion artwork. The desktop layout places a live prompt and six welcome bubbles over the scene. On mobile the prompt stays on the artwork and the bubbles become a two-column grid. The header menu includes services, workspaces and N1 Wallet, and mobile adds bottom navigation. Pause animation below the scene or use your device’s reduced-motion setting.
 
 Typed prompts currently use an honest local **Service guide preview**, linking to existing journeys without transmitting the question. Live generative AI is **not connected**. `assets/companion.js` supports an explicitly configured same-origin `/api/` endpoint returning `{reply: string}`; GitHub Pages alone cannot run it. Messages remain in page memory, render as plain text and clear on reload or New conversation. Dictation requires an explicit click and may use the browser vendor’s speech service.
 
