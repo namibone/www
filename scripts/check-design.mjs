@@ -77,12 +77,50 @@ const sitemap = load(await read('dist/sitemap.xml'),{xml:true});
 for (const f of files.filter(f=>f!=='404.html')) assert(sitemap('loc').toArray().some(e=>sitemap(e).text()===`https://namibone.com/${f==='index.html'?'':f}`),`Sitemap missing ${f}`);
 const sw = await read('dist/sw.js');
 const handlers = {};
+const lifecycle = [];
+let currentCache;
+let precacheError;
 runInNewContext(sw, {
-  self: { location:{origin:'https://namibone.com'}, addEventListener:(type,handler)=>{handlers[type]=handler;} },
-  URL,
-  caches: { open:async()=>({match:async()=>new Response('public page')}) },
-  fetch:async()=>new Response('network'),
+  self: {
+    location:{origin:'https://namibone.com'},
+    addEventListener:(type,handler)=>{handlers[type]=handler;},
+    skipWaiting:async()=>{lifecycle.push('skip waiting');},
+    clients:{claim:async()=>{lifecycle.push('claim clients');}},
+  },
+  URL, Request,
+  caches: {
+    open:async name=>{
+      currentCache=name;
+      return {
+        addAll:async requests=>{
+          if(precacheError)throw precacheError;
+          assert.deepEqual(Array.from(requests,request=>new URL(request.url).pathname),offline);
+          assert(requests.every(request=>request.cache==='reload'));
+          lifecycle.push('precache');
+        },
+        match:async()=>new Response('older public copy'),
+      };
+    },
+    keys:async()=>['onenam-previous-build',currentCache,'unrelated-cache'],
+    delete:async name=>{lifecycle.push(`delete ${name}`);},
+  },
+  fetch:async (_request,options)=>{
+    assert.equal(options.cache,'no-cache','Online public responses should revalidate');
+    return new Response('network');
+  },
 });
+let lifecyclePromise;
+const lifecycleEvent={waitUntil:promise=>{lifecyclePromise=promise;}};
+precacheError=new Error('simulated precache failure');
+handlers.install(lifecycleEvent);
+await assert.rejects(lifecyclePromise,precacheError);
+assert.deepEqual(lifecycle,[],'An incomplete precache must leave the old worker active');
+precacheError=null;
+handlers.install(lifecycleEvent);
+await lifecyclePromise;
+handlers.activate(lifecycleEvent);
+await lifecyclePromise;
+assert.deepEqual(lifecycle,['precache','skip waiting','delete onenam-previous-build','claim clients']);
 const cacheCases = [
   ['/', 'GET', true], ['/privacy.html','GET',true], ['/assets/global.css','GET',true],
   ['/?code=sensitive','GET',false], ['/privacy.html?session=sensitive','GET',false],
@@ -95,21 +133,29 @@ for (const [path,method,expected] of cacheCases) {
   let response;
   handlers.fetch({request:{url:new URL(path,'https://namibone.com').href,method},respondWith:value=>{intercepted=true;response=value;}});
   assert.equal(intercepted,expected,`Offline cache boundary: ${method} ${path}`);
-  if (response) await response;
+  if (response) assert.equal(await (await response).text(),'network',`Online response for ${path}`);
 }
 // Force a genuine worker-network failure: browser offline emulation does not
 // consistently apply to worker-originated requests across browser engines.
 const failureHandlers = {};
+const offlineCopies=new Map([
+  ['/','saved homepage'],['/assets/global.css','saved stylesheet'],['/offline.html','offline guide'],
+]);
 runInNewContext(sw, {
   self: { location:{origin:'https://namibone.com'}, addEventListener:(type,handler)=>{failureHandlers[type]=handler;} },
   URL,
-  caches: { open:async()=>({match:async path=>path==='/offline.html'?new Response('offline guide'):undefined}) },
+  caches: { open:async()=>({match:async path=>offlineCopies.has(path)?new Response(offlineCopies.get(path)):undefined}) },
   fetch:async()=>{throw new Error('simulated network failure');},
 });
-for (const [path,mode] of [['/privacy.html','navigate'],['/assets/app.js','cors']]) {
+for (const [path,mode,expected] of [
+  ['/','navigate','saved homepage'],
+  ['/privacy.html','navigate','offline guide'],
+  ['/assets/global.css','cors','saved stylesheet'],
+  ['/assets/app.js','cors',null],
+]) {
   let response;
   failureHandlers.fetch({request:{url:`https://namibone.com${path}`,method:'GET',mode},respondWith:value=>{response=value;}});
-  if (mode === 'navigate') assert.equal(await (await response).text(),'offline guide');
+  if (expected) assert.equal(await (await response).text(),expected);
   else await assert.rejects(response,/simulated network failure/);
 }
 console.log(`Design gate passed: ${files.length} pages, shared tokens, links, metadata, honest auth, offline boundary; ${Math.round(total/1024)} KiB.`);

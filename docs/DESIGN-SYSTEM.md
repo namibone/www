@@ -31,7 +31,7 @@ Playwright checks all 47 routes for automated WCAG A/AA issues, then exercises s
 
 Only preset sample choices and synthetic IDs enter `onenam-demo-v2` session storage. State is schema-checked and rendered with escaping; unknown references get explicit empty states. Reset affects only the current tab's sample state. No provider request, actual communication or monetary action exists.
 
-Only 29 public routes and their supporting assets are precached. `assets/data.js`, the dependency imported by the public browser module, is included. No citizen/staff/payment/receipt route or query URL is added. Content hashes version the cache; installation reloads HTTP responses and activation removes only older `onenam-` caches after existing clients close. Browser cache restrictions may prevent saving. Public guide status reports success or unavailable state.
+Only 29 public routes and their supporting assets are precached. `assets/data.js`, the dependency imported by the public browser module, is included. No citizen/staff/payment/receipt route or query URL is added. Online requests revalidate public pages and assets before using the offline copy. Installation saves the full release snapshot before the new worker activates, even with older tabs open. Activation removes obsolete `onenam-` caches. An open document picks up the new page on its next navigation or reload. Browser cache restrictions may prevent saving. Public guide status reports success or unavailable state.
 
 
 ## Companion interaction boundary

@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {readFile} from 'node:fs/promises';
+import {createServer} from 'node:http';
 const pages=JSON.parse(await readFile('dist/page-manifest.json','utf8'));
 
 // Split every route into independent checks: failures identify their exact page.
@@ -70,6 +71,74 @@ test('offline cache includes public dependencies and excludes all workspaces',as
  const keys=await page.evaluate(async()=>{const names=await caches.keys();return(await Promise.all(names.filter(n=>n.startsWith('onenam-')).map(async n=>(await(await caches.open(n)).keys()).map(r=>r.url)))).flat();});
  expect(keys.map(k=>new URL(k).pathname).sort()).toEqual(expected.sort());expect(keys.every(k=>!new URL(k).search&&!/^\/(citizen-|staff-|payment|receipt)/.test(new URL(k).pathname))).toBe(true);
  await context.setOffline(true);await page.reload();await expect(page.locator('#connection-banner')).toBeVisible();await page.getByRole('searchbox').fill('vehicle');await page.getByRole('button',{name:'Search',exact:true}).click();await expect(page).toHaveURL(/services.html#q=vehicle/);await expect(page.locator('[data-service-card]:visible')).toHaveCount(1);await page.locator('[data-service-card]:visible').click();await expect(page.locator('h1')).toHaveText('Vehicle licence renewal');
+});
+test('a returning tab loads the current homepage and styles after an offline cache upgrade',async({page,context,baseURL})=>{
+ const previousCache='onenam-previous-release';
+ const previousHome='<!doctype html><title>NamibOne</title><h1>Previous NamibOne homepage</h1>';
+ const previousWorker=`const CACHE='${previousCache}';
+ self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.add('/'))));
+ self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
+ self.addEventListener('fetch',event=>{
+  if(new URL(event.request.url).pathname==='/')event.respondWith(caches.open(CACHE).then(cache=>cache.match('/')));
+ });`;
+ let published=false;
+ const server=createServer(async(request,response)=>{
+  const upstreamURL=new URL(baseURL);
+  const requestURL=new URL(request.url,upstreamURL);
+  upstreamURL.pathname=requestURL.pathname;
+  upstreamURL.search=requestURL.search;
+  response.setHeader('Cache-Control','no-cache');
+  if(!published&&requestURL.pathname==='/sw.js'){
+   response.writeHead(200,{'Content-Type':'text/javascript'}).end(previousWorker);
+   return;
+  }
+  if(!published&&requestURL.pathname==='/'){
+   response.writeHead(200,{'Content-Type':'text/html'}).end(previousHome);
+   return;
+  }
+  try{
+   const upstream=await fetch(upstreamURL);
+   const body=Buffer.from(await upstream.arrayBuffer());
+   response.writeHead(upstream.status,{'Content-Type':upstream.headers.get('Content-Type')}).end(body);
+  }catch{response.writeHead(502).end();}
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const home=`http://127.0.0.1:${server.address().port}/`;
+ try{
+  await page.goto(home);
+  await page.evaluate(async()=>{
+   await navigator.serviceWorker.register('/sw.js');
+   await navigator.serviceWorker.ready;
+  });
+  await expect.poll(()=>page.evaluate(()=>Boolean(navigator.serviceWorker.controller))).toBe(true);
+  const olderTab=await context.newPage();
+  await olderTab.goto(home);
+  await expect(olderTab.getByRole('heading')).toHaveText('Previous NamibOne homepage');
+
+  published=true;
+  await page.evaluate(async()=>{
+   const registration=await navigator.serviceWorker.ready;
+   await registration.update();
+  });
+  await expect.poll(()=>page.evaluate(async key=>(await caches.keys()).includes(key),previousCache)).toBe(false);
+  await expect(olderTab.getByRole('heading')).toHaveText('Previous NamibOne homepage');
+  await page.reload();
+  await expect(page.getByRole('heading',{name:'NamibOne Companion',exact:true})).toBeVisible();
+
+  await page.evaluate(async oldHTML=>{
+   const [name]=(await caches.keys()).filter(key=>key.startsWith('onenam-'));
+   const cache=await caches.open(name);
+   await cache.put('/',new Response(oldHTML,{headers:{'Content-Type':'text/html'}}));
+   await cache.put('/assets/global.css',new Response('.companion-character{display:none}',{headers:{'Content-Type':'text/css'}}));
+  },previousHome);
+  await page.reload();
+  await expect(page.getByRole('heading',{name:'NamibOne Companion',exact:true})).toBeVisible();
+  await expect(page.locator('.companion-character')).toBeVisible();
+  await expect(page.getByRole('link',{name:'Payments and finances'})).toBeVisible();
+ }finally{
+  server.closeAllConnections();
+  await new Promise(resolve=>server.close(resolve));
+ }
 });
 test('history restoration reloads newer tab state before edits',async({page})=>{
  await page.goto('/staff-case.html?id=DEMO-1001');

@@ -30,16 +30,40 @@ const hash=createHash('sha256');
 for(const p of precache)hash.update(await readFile(`dist${p==='/'?'/index.html':p}`));
 const version=hash.digest('hex').slice(0,16);
 await writeFile('dist/sw.js',`const CACHE='onenam-${version}';
-const PUBLIC=${JSON.stringify(precache)};
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PUBLIC.map(path=>new Request(path,{cache:'reload'}))))));
-self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('onenam-')&&key!==CACHE)await caches.delete(key);await self.clients.claim();})()));
+const PUBLIC=new Set(${JSON.stringify(precache)});
+
+self.addEventListener('install',event=>event.waitUntil((async()=>{
+ const cache=await caches.open(CACHE);
+ await cache.addAll(Array.from(PUBLIC,path=>new Request(new URL(path,self.location.origin),{cache:'reload'})));
+ await self.skipWaiting();
+})()));
+
+self.addEventListener('activate',event=>event.waitUntil((async()=>{
+ for(const key of await caches.keys()){
+  if(key.startsWith('onenam-')&&key!==CACHE)await caches.delete(key);
+ }
+ await self.clients.claim();
+})()));
+
+async function servePublic(request,path){
+ try{
+  return await fetch(request,{cache:'no-cache'});
+ }catch(error){
+  const cache=await caches.open(CACHE);
+  const saved=await cache.match(path);
+  if(saved)return saved;
+  if(request.mode==='navigate'){
+   const fallback=await cache.match('/offline.html');
+   if(fallback)return fallback;
+  }
+  throw error;
+ }
+}
+
 self.addEventListener('fetch',event=>{
  const url=new URL(event.request.url);
- if(event.request.method!=='GET'||url.origin!==self.location.origin||url.search||!PUBLIC.includes(url.pathname))return;
- event.respondWith(caches.open(CACHE).then(async cache=>{
-  const saved=await cache.match(url.pathname);if(saved)return saved;
-  try{return await fetch(event.request,{cache:'no-store'});}catch(error){if(event.request.mode==='navigate'){const fallback=await cache.match('/offline.html');if(fallback)return fallback;}throw error;}
- }));
+ if(event.request.method!=='GET'||url.origin!==self.location.origin||url.search||!PUBLIC.has(url.pathname))return;
+ event.respondWith(servePublic(event.request,url.pathname));
 });`);
 await writeFile('dist/page-manifest.json',JSON.stringify(pages.map(page=>({path:page.path,title:page.title,section:page.section??'public',offline:isPublicOffline(page)})),null,2));
 console.log(`Built ${pages.length} pages; ${publicPages.length} public offline routes. Version ${version}.`);
