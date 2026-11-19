@@ -19,3 +19,13 @@ The payment simulator never asks for a card, account number, OTP or payment cred
 Public service guidance is available offline after saving. Workspaces and query URLs are excluded from the service worker cache. All future personal and financial API responses must be authenticated, authorised server-side, excluded from caches and served with appropriate no-store headers. GitHub Pages cannot enforce server-side authentication for these static prototype pages.
 
 Before production claims: complete operator/partner verification, security threat modelling and testing, payment/identity provider approval, accessibility and usability testing with citizens/staff, public support/contact routes, monitoring, incident response and data-governance decisions. These are launch prerequisites, not claims already satisfied by this prototype.
+
+## Stakeholder agreement
+
+The acknowledgements at `/forms/index.html` are separate from the synthetic citizen and staff flows. The page records the stakeholder's contact details, declared role and interests, explicit acceptance, typed name, terms version, browser UTC timestamp and reference. It is excluded from the offline cache. The reference is reused if a submission is retried without editing the form. Check for the same reference before recording a duplicate.
+
+The default mode prepares a draft addressed to `raydo@skunkworks.africa` for the stakeholder to review and send. Creating the draft makes no submission request. Acknowledgements received by email still need review for identity, authority and appointment.
+
+For automatic delivery, create a dedicated Formspree form and verify `raydo@skunkworks.africa` as its Target Email. Copy the public ID from its `https://formspree.io/f/<id>` endpoint into `configuredFormId` in `scripts/stakeholder-agreement.mjs`. Keep account credentials outside the repository. Configure the form to accept the production domain and confirm the notification, access and retention settings with the project contact before collecting responses. After deployment, send a labelled synthetic acknowledgement from the production page and verify receipt in both the Formspree dashboard and the target mailbox.
+
+Treat each terms release as a fixed version. Update the displayed and submitted version and date together when amending the agreement, and keep the corresponding release commit so the accepted wording can be recovered.
