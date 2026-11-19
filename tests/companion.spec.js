@@ -212,6 +212,15 @@ test.describe('companion landing',()=>{
   await expect(page).toHaveURL(/department-education\.html$/);
  });
 
+ test('payments and finances links to the N1 Wallet dashboard preview',async({page})=>{
+  await page.goto('/');
+  await page.getByRole('link',{name:'Payments and finances',exact:true}).click();
+  await expect(page).toHaveURL('/payments.html');
+  const wallet=page.getByRole('link',{name:'Open N1 Wallet preview',exact:true});
+  await expect(wallet).toBeVisible();
+  await expect(wallet).toHaveAttribute('href','https://n1wallet.net/portal.html');
+ });
+
  test('first arrival keeps the prompt visible on mobile and desktop',async({page},info)=>{
   for(const viewport of [{width:320,height:780},{width:390,height:844},{width:1440,height:1000}]){
    await page.setViewportSize(viewport);
