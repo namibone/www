@@ -1,0 +1,124 @@
+.project-status {
+  display: grid;
+  gap: clamp(1.25rem, 2.6vw, 2rem);
+  max-width: 78rem;
+  margin-inline: auto;
+}
+
+.status-hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  padding: clamp(1.4rem, 4vw, 2.6rem);
+  color: var(--color-white);
+  background: var(--color-teal-ink);
+  border-radius: var(--radius-card);
+}
+
+.status-hero h1 { margin-block: .3rem .6rem; }
+.status-hero p { margin: 0; max-width: 48rem; }
+.status-hero .status-verified { color: var(--color-sand); font-size: .85rem; font-weight: 650; }
+.status-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: .75rem;
+  margin: 0;
+}
+.status-metrics div { display: flex; flex-direction: column-reverse; justify-content: start; gap: .25rem; padding: .85rem 1rem; }
+.status-metrics dt { color: var(--color-muted); font-size: .8rem; font-weight: 650; }
+.status-metrics dd { color: var(--color-teal-ink); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 750; line-height: 1.1; margin: 0; }
+.status-heading { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .35rem 1rem; margin-bottom: .8rem; }
+.status-heading span { font-size: .86rem; color: var(--color-muted); }
+
+.status-stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: .65rem;
+}
+.status-stage { display: flex; flex-direction: column; gap: .65rem; padding: .85rem; }
+.status-stage-head { display: flex; align-items: start; flex-wrap: wrap; gap: .25rem .4rem; }
+.status-stage h3 { flex-basis: 100%; margin: 0; }
+.status-stage p { font-size: .84rem; margin: 0 0 auto; color: var(--color-muted); }
+.status-stage progress { width: 100%; height: .65rem; accent-color: var(--color-primary); }
+.status-stage-foot { display: flex; flex-wrap: wrap; gap: 0 .45rem; align-items: center; justify-content: space-between; font-size: .78rem; }
+.status-stage-foot a { display: inline-grid; align-items: center; min-height: 36px; font-weight: 650; }
+.status-chip { display: inline-block; border-radius: var(--radius-pill); padding: .15rem .5rem; font-weight: 700; font-size: .75rem; }
+.status-completed { color: var(--color-teal-ink); background: var(--color-primary-soft); }
+.status-active, .status-review { color: var(--color-blue); background: var(--color-blue-soft); }
+.status-blocked { color: var(--color-danger); background: var(--color-danger-soft); }
+.status-planned { color: var(--color-muted); background: var(--color-paper); }
+
+.status-overview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 1rem; }
+.status-goals { display: grid; gap: .65rem; margin-bottom: 0; }
+.status-goals dt { font-weight: 700; }
+.status-goals dd { margin: 0; color: var(--color-muted); }
+.status-attention ul { padding-inline-start: 1.15rem; margin-bottom: 0; }
+.status-attention h3 { margin-top: 1.05rem; }
+.status-attention p { font-size: .9rem; margin: .15rem 0 .55rem; }
+.status-decisions li { margin-top: .4rem; }
+
+.status-filters { display: flex; flex-wrap: wrap; align-items: end; gap: .65rem 1rem; }
+.status-filters label { min-width: 0; }
+.status-filters select { min-width: 10rem; width: 100%; }
+.status-filters .choice { min-height: 44px; margin: 0; }
+.status-result { color: var(--color-muted); font-size: .86rem; margin: .65rem 0; }
+.status-result:empty { margin: 0; }
+.status-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .88rem; }
+.status-table th, .status-table td { padding: .7rem .55rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--color-line); overflow-wrap: anywhere; }
+.status-table thead th { color: var(--color-teal-ink); background: var(--color-primary-soft); }
+.status-table thead th:first-child { width: 31%; }
+.status-table thead th:nth-child(2) { width: 12%; }
+.status-table thead th:nth-child(3), .status-table thead th:nth-child(4) { width: 15%; }
+.status-table tbody th { font-weight: 400; }
+.status-table tbody strong { font-size: .96rem; }
+.status-table tbody p { margin: .25rem 0; }
+.status-table tbody a { display: inline-block; min-height: 24px; color: var(--color-teal-ink); font-weight: 650; }
+.status-work-stage, .status-field-note { display: block; margin-top: .2rem; color: var(--color-muted); font-size: .78rem; }
+.status-mobile-label { display: none; }
+.status-empty { margin: .75rem 0 0; }
+
+.status-report-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
+.status-report pre {
+  margin: 1rem 0 0;
+  padding: 1rem;
+  max-height: 29rem;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+}
+.status-report #report-share-link { overflow-wrap: anywhere; }
+.status-sources ul { display: flex; flex-wrap: wrap; gap: .35rem 1.2rem; padding-inline-start: 1.15rem; margin-bottom: 0; }
+.status-sources a { display: inline-block; min-height: 24px; }
+
+@media (max-width: 970px) {
+  .status-table, .status-table tbody { display: block; }
+  .status-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .status-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; border-top: 1px solid var(--color-line); padding-block: .8rem; }
+  .status-table tbody th, .status-table .status-requirement { grid-column: 1 / -1; }
+  .status-table th, .status-table td { display: block; border: 0; padding: 0; }
+  .status-mobile-label { display: block; font-weight: 700; font-size: .76rem; margin-bottom: .15rem; color: var(--color-teal-ink); }
+}
+
+@media (max-width: 700px) {
+  .status-overview { grid-template-columns: 1fr; }
+  .status-stage-head h3 { flex-basis: auto; }
+  .status-stage-head { justify-content: space-between; }
+  .status-stages { grid-template-columns: 1fr; }
+  .status-report-actions a, .status-report-actions button { flex: 1 0 min(100%, 9rem); }
+}
+
+@media print {
+  .status-filters, .status-stage-foot a, .status-report-actions, .status-report pre { display: none; }
+  .status-hero { color: var(--color-ink); background: var(--color-white); }
+  .status-hero .status-verified { color: var(--color-muted); }
+  .status-stage, .status-table tbody tr { break-inside: avoid; }
+}

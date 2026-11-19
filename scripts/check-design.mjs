@@ -6,13 +6,15 @@ import postcss from 'postcss';
 import colorNames from 'color-name';
 import { runInNewContext } from 'node:vm';
 import { acknowledgementPath } from '../assets/stakeholder-agreement-shared.js';
+import { statusPath, reportBase, publicStatusUrl, work, createDevelopmentReport } from '../assets/project-status-data.js';
 const read = p => readFile(p,'utf8');
 const css = await read('dist/assets/global.css');
 const agreementCss = await read('dist/assets/stakeholder-agreement.css');
+const statusCss = await read('dist/assets/project-status.css');
 const tokens = await read('dist/assets/tokens.css');
 const declared = new Set();
 postcss.parse(tokens).walkDecls(d => declared.add(d.prop));
-for (const stylesheet of [css, agreementCss]) postcss.parse(stylesheet).walkDecls(d => {
+for (const stylesheet of [css, agreementCss, statusCss]) postcss.parse(stylesheet).walkDecls(d => {
   const literal = d.value.replace(/var\(--[\w-]+\)/g,'');
   const keyword = (literal.match(/\b[a-z]+\b/gi) || []).some(word=>Object.hasOwn(colorNames,word.toLowerCase()));
   assert(!keyword && !/#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark|device-cmyk)\(/i.test(literal), `Use a shared color token: ${d.toString()}`);
@@ -25,20 +27,30 @@ assert(css.includes('max-width: 700px'), 'Mobile layout is required');
 assert.equal((await read('CNAME')).trim(),'namibone.com','Preserve production domain');
 assert.equal((await read('dist/CNAME')).trim(),'namibone.com');
 const agreementFile = 'forms/index.html';
+const statusFile = statusPath.slice(1);
 const files = (await readdir('dist', { recursive: true })).filter(f=>f.endsWith('.html')).map(f=>f.split(sep).join('/'));
 assert(files.includes(agreementFile), 'The stakeholder agreement must be published at /forms/index.html');
+assert(files.includes(statusFile), 'The project status page must be published');
 let total = 0;
 let agreementTotal = 0;
+let statusTotal = 0;
 for (const file of [...files,...(await readdir('dist/assets')).map(f=>`assets/${f}`)]) {
   const { size } = await stat(`dist/${file}`);
   total += size;
   if (file === agreementFile || file.startsWith('assets/stakeholder-agreement')) agreementTotal += size;
+  if (file === statusFile || file.startsWith('assets/project-status')) statusTotal += size;
 }
-assert(total - agreementTotal < 650_000, `Prototype page/assets budget exceeded: ${total - agreementTotal} bytes`);
+assert(total - agreementTotal - statusTotal < 650_000, `Prototype page/assets budget exceeded: ${total - agreementTotal - statusTotal} bytes`);
 assert(agreementTotal < 32_000, `Stakeholder agreement page/assets budget exceeded: ${agreementTotal} bytes`);
+assert(statusTotal < 65_000, `Project status page/assets budget exceeded: ${statusTotal} bytes`);
+assert.equal(await read(`dist${reportBase}.md`), createDevelopmentReport(), 'The text report reflects the published register');
+const reportPdf = await readFile(`dist${reportBase}.pdf`);
+assert.equal(reportPdf.subarray(0, 5).toString(), '%PDF-', 'The report download must be a PDF');
+assert.equal(new Set(work.map(item => item.id)).size, work.length, 'Work items must have unique identifiers');
 for (const file of files) {
   const $ = load(await read(`dist/${file}`));
   const isAgreement = file === agreementFile;
+  const isStatus = file === statusFile;
   assert((await stat(`dist/${file}`)).size < 40_000,`${file}: individual page exceeds 40 KB`);
   assert.equal($('html').attr('lang'),'en',`${file}: document language`);
   assert.equal($('h1').length,1,`${file}: exactly one h1`);
@@ -87,7 +99,10 @@ for (const file of files) {
     const ref = $(el).attr('src') || $(el).attr('href');
     assert(ref && ref !== '#',`${file}: no placeholder links`);
     if (ref.startsWith('mailto:')) {
-      assert(isAgreement && el.tagName === 'a' && ref === 'mailto:raydo@skunkworks.africa', `${file}: unexpected email destination`);
+      if (isStatus) {
+        const share = new URL(ref);
+        assert(el.tagName === 'a' && !share.pathname && share.searchParams.get('body')?.includes(publicStatusUrl), `${file}: email share must leave the recipient open and link the report`);
+      } else assert(isAgreement && el.tagName === 'a' && ref === 'mailto:raydo@skunkworks.africa', `${file}: unexpected email destination`);
       continue;
     }
     if (/^https?:/.test(ref)) {
@@ -104,6 +119,7 @@ const signin = load(await read('dist/signin.html'));
 assert.equal(signin('button.provider[disabled]').length,3,'All unconfigured providers must stay disabled');
 const manifest=JSON.parse(await read('dist/page-manifest.json'));
 const offline=JSON.parse(await read('dist/offline-manifest.json'));
+assert(!offline.some(entry => entry.includes('/assets/project-status') || entry.startsWith('/status/')), 'The current report is fetched online');
 for(const page of manifest){
   assert.equal(offline.includes(page.path),page.offline,`Offline scope: ${page.path}`);
 }

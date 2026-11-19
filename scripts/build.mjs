@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import sharp from 'sharp';
 import {pages} from './pages.mjs';
 import {layout} from './ui.mjs';
+import {writeDevelopmentReports} from './project-status-report.mjs';
 const output=resolve('dist');
 assert(dirname(output)===process.cwd()&&basename(output)==='dist');
 await rm(output,{recursive:true,force:true});
@@ -21,12 +22,13 @@ for (const page of pages) {
   await mkdir(dirname(file), { recursive: true });
   await writeFile(file, layout(page));
 }
+await writeDevelopmentReports(output);
 await writeFile('dist/manifest.webmanifest',JSON.stringify({name:'NamibOne digital gateway',short_name:'NamibOne',id:'/',start_url:'/',scope:'/',display:'standalone',background_color:'#f6f2e9',theme_color:'#124f50',description:'Independent public-service prototype for Namibia.',icons:[192,512].map(s=>({src:`/assets/namibone-mark-${s}.png`,sizes:`${s}x${s}`,type:'image/png',purpose:'any'}))},null,2));
 await writeFile('dist/sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${pages.filter(p=>p.path!=='/404.html').map(p=>`<url><loc>https://namibone.com${p.path}</loc></url>`).join('')}</urlset>`);
 await writeFile('dist/robots.txt','User-agent: *\nAllow: /\nSitemap: https://namibone.com/sitemap.xml\n');
 const isPublicOffline=page=>(page.section??'public')==='public'&&page.offline!==false;
 const publicPages=pages.filter(isPublicOffline).map(p=>p.path);
-const assets=(await readdir('dist/assets')).map(f=>`/assets/${f}`);
+const assets = (await readdir('dist/assets')).filter(name => !name.startsWith('project-status')).map(name => `/assets/${name}`);
 const precache=[...publicPages,'/index.html',...assets,'/manifest.webmanifest'];
 await writeFile('dist/offline-manifest.json',JSON.stringify(precache));
 const hash=createHash('sha256');

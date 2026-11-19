@@ -1,5 +1,6 @@
 import {companionHome} from './companion-page.mjs';
 import {stakeholderAgreementPage} from './stakeholder-agreement.mjs';
+import {projectStatusPage} from './project-status.mjs';
 import {services,departments,notices,money} from '../assets/data.js';
 import {icon,button,badge,notice,sampleNotice,heading,sectionHead,serviceGrid,search,quick,metric,noticeList,checklist,chart} from './ui.mjs';
 export const pages=[];
@@ -51,6 +52,6 @@ add('/accessibility.html','Accessibility','Keyboard, responsive and reduced-moti
 add('/offline.html','Offline reading','Understand which OneNam public pages can be read offline.',`${heading('Public guidance, within reach.','Read saved public information with limited connectivity.')}<article class="panel prose"><h2>What is saved</h2><p>The public home, service catalogue and guidance, department previews, notices, help and policy pages are saved after a successful online visit.</p><p id="offline-status" role="status">Preparing public pages for offline reading…</p><h2>What needs a connection</h2><p>Citizen and staff workspaces, sample payment pages and any future identity or live-service integrations are excluded from the offline cache. They are not available as a guaranteed offline service.</p><h2>Storage and updates</h2><p>Your browser may restrict or clear saved data. Close old OneNam tabs and revisit online to activate an updated saved version. Clear site data to remove saved public pages.</p></article>`);
 add('/explore.html','Explore OneNam','Explore the service-first OneNam prototype.',`${heading('Choose your starting point.','A connected experience for service discovery, citizens and teams.')}<div class="quick-grid">${quick('Service directory','Browse all sample journeys','/services.html','search')}${quick('Citizen workspace','Applications, messages and balances','/citizen-dashboard.html','people')}${quick('Staff workspace','Queue, communications and analytics','/staff-dashboard.html','building')}</div>`);
 add('/404.html','Page not found','Find your way back to OneNam.',`${heading('Let’s find a better route.','This page is not available.')}${button('Return to the gateway','/')}<div class="section">${button('Browse the service directory','/services.html',true)}</div>`,{offline:false});
-pages.push(stakeholderAgreementPage());
+pages.push(stakeholderAgreementPage(), projectStatusPage);
 
 add('/sitemap.html','Site map','All public pages and prototype workspaces in OneNam.',`${heading('Every route, in one place.','Public information and clearly marked prototype workspaces.')}<div class="grid two">${[['Public information',pages.filter(p=>!p.section&&p.path!=='/404.html')],['Citizen demo',pages.filter(p=>p.section==='citizen')],['Staff demo',pages.filter(p=>p.section==='staff')]].map(([label,items])=>`<section class="panel"><h2>${label}</h2><ul>${items.map(p=>`<li><a href="${p.path}">${p.title}</a></li>`).join('')}</ul></section>`).join('')}</div>`);
