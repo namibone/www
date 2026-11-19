@@ -1,4 +1,4 @@
-import {icon, search} from './ui.mjs';
+import {icon, search, walletHomeUrl} from './ui.mjs';
 
 const symbols = {
   chat: '<path fill="currentColor" fill-rule="evenodd" d="M12 2a10 10 0 0 0-9.3 13.7L2 22l6-2.1A10 10 0 1 0 12 2Zm-4 9.7c0-2 2.2-3.7 4.6-3.7 1.9 0 3.2.9 3.2 2.1 0 1.1-1 1.7-2.4 1.7h-1.8l-2.7 2.3.5-2.2c-.9-.1-1.4-.7-1.4-1.2Z"/>',
@@ -77,5 +77,6 @@ export const companionHome = `
 <nav class="companion-mobile-nav" aria-label="Mobile navigation">
   <a href="/" aria-current="page">${icon('message')}<span>Companion</span></a>
   <a href="/services.html">${icon('grid')}<span>Services</span></a>
+  <a href="${walletHomeUrl}">${icon('wallet')}<span>N1 Wallet</span></a>
   <a href="/citizen-dashboard.html">${icon('people')}<span>My space · demo</span></a>
 </nav>`;
