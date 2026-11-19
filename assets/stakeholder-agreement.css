@@ -82,6 +82,7 @@
 }
 
 .agreement input:not([type="checkbox"]), .agreement select { border-color: var(--color-muted); }
+.agreement .field [aria-invalid="true"] { border-color: var(--color-danger); }
 .agreement-checks { display: grid; gap: .3rem; }
 .agreement-checks .choice { align-items: flex-start; gap: .65rem; margin: 0; }
 .agreement-checks input { flex: none; margin: .25rem 0 0; }

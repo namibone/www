@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { stakeholderAgreementPage } from '../scripts/stakeholder-agreement.mjs';
 import { layout } from '../scripts/ui.mjs';
+import { acknowledgementPath } from '../assets/stakeholder-agreement-shared.js';
 
 const path = '/forms/index.html';
 const name = 'Synthetic Pilot Tester';
@@ -33,7 +34,7 @@ test('stakeholders review a signed email draft without a network submission', as
   await form.getByLabel('Signing capacity').selectOption('Authorised representative');
   await form.getByLabel('Organisation’s legal name').fill('Synthetic Pilot Organisation');
   await form.getByLabel('Conflict of interest declaration').selectOption('Relevant interest to disclose');
-  await form.getByLabel(/Relevant interest Share only/).fill('Advises a prospective pilot supplier.');
+  await form.getByLabel('Relevant interest', { exact: true }).fill('Advises a prospective pilot supplier.');
   const submit = form.getByRole('button', { name: 'Prepare signed email' });
   const signature = form.getByLabel(/Type your full name to sign/);
   const draft = page.getByLabel('Email draft', { exact: true });
@@ -68,26 +69,31 @@ test('stakeholders review a signed email draft without a network submission', as
   await expect(draft).not.toHaveValue(/Advises a prospective pilot supplier/);
 });
 
-test('enabled Formspree form preserves retry details and confirms receipt', async ({ page }) => {
-  const fixtureId = 'fixture-form';
+test('enabled handler preserves retry details and confirms receipt', async ({ page }) => {
+  const fixture = `https://forms.example.test${acknowledgementPath}`;
   const received = [];
   await page.route(`**${path}`, route => route.fulfill({
     contentType: 'text/html',
-    body: layout(stakeholderAgreementPage(fixtureId)),
+    body: layout(stakeholderAgreementPage(fixture)),
   }));
-  await page.route(`https://formspree.io/f/${fixtureId}`, async route => {
+  const cors = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+  await page.route(fixture, async route => {
     const request = route.request();
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
     expect(request.method()).toBe('POST');
     expect(request.headers().accept).toBe('application/json');
-    const body = new Response(request.postDataBuffer(), {
-      headers: { 'Content-Type': request.headers()['content-type'] },
-    });
-    received.push(Object.fromEntries(await body.formData()));
+    expect(request.headers()['content-type']).toBe('application/json');
+    const body = request.postDataJSON();
+    received.push(body);
     const firstAttempt = received.length === 1;
     await route.fulfill({
       status: firstAttempt ? 503 : 200,
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      json: firstAttempt ? { errors: [{ message: 'Simulated outage' }] } : { ok: true },
+      headers: cors,
+      json: firstAttempt ? { ok: false } : { ok: true, reference: body.acknowledgement_reference },
     });
   });
 
@@ -103,7 +109,7 @@ test('enabled Formspree form preserves retry details and confirms receipt', asyn
   await expect(status).toContainText('could not confirm receipt');
   await expect(form.getByLabel('Contact email')).toHaveValue(email);
   await submit.click();
-  await expect(status).toContainText('received by the form service');
+  await expect(status).toContainText('mail service accepted your acknowledgement');
   await expect(form.getByLabel('Contact email')).toHaveValue('');
   expect(received).toHaveLength(2);
   expect(received[1]).toEqual(received[0]);

@@ -2,9 +2,9 @@
 
 Live at **https://namibone.com**, hosted by GitHub Pages from this repository. Original history, custom domain and HTTPS are preserved.
 
-The companion-first prototype contains **47 navigable pages**: a public service catalogue, eight service details, six department previews, public notices and guidance, citizen applications/messages/profile, department operations/casework/communications/analytics, and sample balances/payment review/history/receipts.
+The companion-first prototype contains **48 navigable pages**: a public service catalogue, eight service details, six department previews, public notices and guidance, citizen applications/messages/profile, department operations/casework/communications/analytics, and sample balances/payment review/history/receipts. The [stakeholder agreement](https://namibone.com/forms/index.html) covers pilot participation and includes a signed acknowledgement form.
 
-All records, department groupings, requirements, metrics and fees are illustrative. There is no verified government affiliation. Citizen and staff workspaces are **public demonstrations, not authenticated or privileged portals**. Google, Microsoft and GitHub sign-in remain disabled. No real application, message, public announcement or payment is submitted.
+All records, department groupings, requirements, metrics and fees are illustrative. There is no verified government affiliation. Citizen and staff workspaces are **public demonstrations, not authenticated or privileged portals**. Google, Microsoft and GitHub sign-in remain disabled. The sample workspaces do not submit real applications, messages, public announcements or payments.
 
 ## Companion-first landing
 
@@ -27,7 +27,7 @@ npm run dev
 
 Requires Node.js 24. Preview: `http://127.0.0.1:4173`. The build writes only generated output to `dist/`. `scripts/pages.mjs` defines route content; `scripts/ui.mjs` supplies the shared shell and components. Browser interactions and synthetic records are in `assets/app.js` and `assets/data.js`.
 
-The quality gate checks every page, all internal links, brand tokens, accessibility structure, sample/identity disclosures, a 650 KB total HTML/assets budget, and the actual service worker's public/private boundary. Playwright tests all 47 routes and end-to-end sample workflows in Chromium, Firefox and WebKit. Screenshots are retained in CI artifacts. Main requires `Design and browser gate`, including administrators; the Pages deployment depends on that successful job. No legacy branch publisher bypasses the gate.
+The quality gate checks every page, all internal links, brand tokens, accessibility structure, sample/identity disclosures, the prototype and agreement size budgets, and the actual service worker's public/private boundary. Playwright tests all 48 routes and end-to-end sample workflows in Chromium, Firefox and WebKit. Screenshots are retained in CI artifacts. Main requires `Design and browser gate`, including administrators; the Pages deployment depends on that successful job. No legacy branch publisher bypasses the gate.
 
 ## Try the journeys
 
@@ -39,7 +39,7 @@ The quality gate checks every page, all internal links, brand tokens, accessibil
 6. Prepare a staff notice preview; save it locally without publishing or sending.
 7. Reset changes on the sample profile page.
 
-Sample state uses versioned session storage for the current browser tab only. No free-text personal fields, document uploads, card details or real citizens are included. Search terms and companion conversations are not persisted. Public information and module dependencies are cached for offline reading; citizen, staff and financial pages are excluded from the service worker allowlist. Browser HTTP caches are separate. Without JavaScript, public links and guidance remain readable, including mobile navigation; prototype mutations require JavaScript.
+Sample state uses versioned session storage for the current browser tab only. The sample workspaces contain synthetic records and collect no personal details, documents or card details. See the [stakeholder agreement and email setup](docs/INTEGRATIONS.md#stakeholder-agreement) for the separate acknowledgement process. Search terms and companion conversations are not persisted. Public information and module dependencies are cached for offline reading; citizen, staff and financial pages are excluded from the service worker allowlist. Browser HTTP caches are separate. Without JavaScript, public links and guidance remain readable, including mobile navigation; prototype mutations require JavaScript.
 
 - [Design and navigation system](docs/DESIGN-SYSTEM.md)
 - [Authentication prerequisites](docs/AUTHENTICATION.md)

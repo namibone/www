@@ -7,8 +7,10 @@
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "check:design": "node scripts/check-design.mjs",
+    "start:forms": "node server/start.mjs",
+    "test:forms-server": "node --test server/stakeholder-acknowledgements.test.mjs",
     "test": "playwright test",
-    "check": "npm run build && npm run check:design && npm test"
+    "check": "npm run build && npm run check:design && npm run test:forms-server && npm test"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.0",

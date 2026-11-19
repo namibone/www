@@ -1,11 +1,9 @@
-const version = '1.0';
-const versionDate = '2026-11-19';
-const contact = 'raydo@skunkworks.africa';
+import { acknowledgementPath, conflictOptions, contact, representative, version, versionDate } from '../assets/stakeholder-agreement-shared.js';
 
-// Set this to the public Formspree form ID after its Target Email is verified.
-const configuredFormId = '';
+// Set the full public HTTPS endpoint after the project handler is deployed.
+const configuredEndpoint = '';
 
-const roles = [
+export const roles = [
   ['Project coordination', 'Maintain the pilot scope, decision log, risk register and review schedule. Confirm assignments and escalate decisions to the authorised parties.'],
   ['Sponsor or steering representative', 'Review priorities and risks, help resolve dependencies and obtain any approvals from your own organisation.'],
   ['Technical delivery or security', 'Build and test assigned prototype features with synthetic data. Document limitations, protect access and report incidents.'],
@@ -14,13 +12,14 @@ const roles = [
   ['Adviser or prospective delivery partner', 'Offer advice within your remit and disclose interests, dependencies and any approvals your organisation requires.'],
 ];
 
-export function stakeholderAgreementPage(formId = configuredFormId) {
-  if (formId && !/^[a-z0-9_-]{5,64}$/i.test(formId)) {
-    throw new Error('The stakeholder Formspree ID must be the ID from the verified form endpoint.');
+export function stakeholderAgreementPage(handlerUrl = configuredEndpoint) {
+  const handler = handlerUrl ? new URL(handlerUrl) : null;
+  if (handler && (handler.protocol !== 'https:' || handler.href !== `${handler.origin}${acknowledgementPath}`)) {
+    throw new Error(`The stakeholder handler must be an HTTPS URL ending in ${acknowledgementPath}.`);
   }
-  const endpoint = formId ? `https://formspree.io/f/${formId}` : '';
+  const endpoint = handler?.href ?? '';
   const delivery = endpoint
-    ? `When you submit, Formspree processes and stores your response and emails it to ${contact}. Formspree and the email service may process it outside your country. See <a href="https://formspree.io/legal/privacy-policy/">Formspree’s privacy policy</a>.`
+    ? `When you submit, the NamibOne handler sends your response through Microsoft 365 to ${contact}. The handler keeps no submissions database. Responses are kept in project mailboxes under the applicable retention policy. Hosting and email providers may process information outside your country.`
     : `Automatic delivery is pending. This page prepares a draft for you to review and send from your email app to ${contact}. Preparing the draft keeps your answers on this page.`;
 
   return {
@@ -29,7 +28,7 @@ export function stakeholderAgreementPage(formId = configuredFormId) {
     description: 'Review the NamibOne pilot memorandum of understanding, scope, duties and participation terms. Declare your intent and record your acceptance.',
     offline: false,
     stakeholderAgreement: true,
-    formspreeEnabled: Boolean(endpoint),
+    acknowledgementOrigin: handler?.origin,
     body: `
 <div class="agreement">
   <header class="agreement-hero">
@@ -107,7 +106,7 @@ export function stakeholderAgreementPage(formId = configuredFormId) {
             <select name="capacity" required>
               <option value="">Select your capacity</option>
               <option value="Individual">Individual</option>
-              <option value="Authorised representative">Authorised representative</option>
+              <option>${representative}</option>
             </select>
           </label>
           <label class="field" id="organisation-field" hidden>Organisation’s legal name <input name="organisation" autocomplete="organization" maxlength="160" disabled></label>
@@ -124,22 +123,22 @@ export function stakeholderAgreementPage(formId = configuredFormId) {
       <fieldset>
         <legend>Intent and interests</legend>
         <div class="agreement-fields">
-          <label class="field agreement-wide">Statement of intent
-            <span class="small muted">Describe what you intend to contribute, including any responsibilities or conditions you want the team to confirm.</span>
-            <textarea name="intent" rows="4" maxlength="900" required></textarea>
-          </label>
+          <div class="field agreement-wide">
+            <label for="stakeholder-intent">Statement of intent</label>
+            <span class="small muted" id="stakeholder-intent-hint">Describe what you intend to contribute, including any responsibilities or conditions you want the team to confirm.</span>
+            <textarea id="stakeholder-intent" name="intent" rows="4" maxlength="900" aria-describedby="stakeholder-intent-hint" required></textarea>
+          </div>
           <label class="field agreement-wide">Conflict of interest declaration
             <select name="conflict" required>
               <option value="">Select a declaration</option>
-              <option>None known</option>
-              <option>Relevant interest to disclose</option>
-              <option>Request a private follow-up</option>
+              ${conflictOptions.map(option => `<option>${option}</option>`).join('\n              ')}
             </select>
           </label>
-          <label class="field agreement-wide" id="interest-field" hidden>Relevant interest
-            <span class="small muted">Share only the nature of the interest and its effect on your role. Use the private follow-up option for sensitive details.</span>
-            <textarea name="interest_details" rows="3" maxlength="600" disabled></textarea>
-          </label>
+          <div class="field agreement-wide" id="interest-field" hidden>
+            <label for="stakeholder-interest">Relevant interest</label>
+            <span class="small muted" id="stakeholder-interest-hint">Share only the nature of the interest and its effect on your role. Use the private follow-up option for sensitive details.</span>
+            <textarea id="stakeholder-interest" name="interest_details" rows="3" maxlength="600" aria-describedby="stakeholder-interest-hint" disabled></textarea>
+          </div>
         </div>
       </fieldset>
 
@@ -149,10 +148,11 @@ export function stakeholderAgreementPage(formId = configuredFormId) {
           <label class="choice"><input type="checkbox" name="accept_terms" value="Accepted" required> <span>I have read the memorandum of understanding, scope and duties. I agree to the participation terms in version ${version}.</span></label>
           <label class="choice"><input type="checkbox" name="confirm_authority" value="Confirmed" required> <span>My details and disclosure are accurate to the best of my knowledge. If I am signing for an organisation, I am authorised to accept these terms on its behalf.</span></label>
         </div>
-        <label class="field agreement-signature">Type your full name to sign
-          <span class="small muted">Use the same name you entered above. The typed name records your agreement in the capacity you selected.</span>
-          <input name="signature" maxlength="140" autocomplete="off" required>
-        </label>
+        <div class="field agreement-signature">
+          <label for="stakeholder-signature">Type your full name to sign</label>
+          <span class="small muted" id="stakeholder-signature-hint">Use the same name you entered above. The typed name records your agreement in the capacity you selected.</span>
+          <input id="stakeholder-signature" name="signature" maxlength="140" autocomplete="off" aria-describedby="stakeholder-signature-hint" required>
+        </div>
       </fieldset>
 
       <button class="button" type="submit" disabled>${endpoint ? 'Sign and submit' : 'Prepare signed email'}</button>

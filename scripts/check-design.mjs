@@ -5,6 +5,7 @@ import { load } from 'cheerio';
 import postcss from 'postcss';
 import colorNames from 'color-name';
 import { runInNewContext } from 'node:vm';
+import { acknowledgementPath } from '../assets/stakeholder-agreement-shared.js';
 const read = p => readFile(p,'utf8');
 const css = await read('dist/assets/global.css');
 const agreementCss = await read('dist/assets/stakeholder-agreement.css');
@@ -31,10 +32,10 @@ let agreementTotal = 0;
 for (const file of [...files,...(await readdir('dist/assets')).map(f=>`assets/${f}`)]) {
   const { size } = await stat(`dist/${file}`);
   total += size;
-  if (file === agreementFile || file.startsWith('assets/stakeholder-agreement.')) agreementTotal += size;
+  if (file === agreementFile || file.startsWith('assets/stakeholder-agreement')) agreementTotal += size;
 }
 assert(total - agreementTotal < 650_000, `Prototype page/assets budget exceeded: ${total - agreementTotal} bytes`);
-assert(agreementTotal < 30_000, `Stakeholder agreement page/assets budget exceeded: ${agreementTotal} bytes`);
+assert(agreementTotal < 32_000, `Stakeholder agreement page/assets budget exceeded: ${agreementTotal} bytes`);
 for (const file of files) {
   const $ = load(await read(`dist/${file}`));
   const isAgreement = file === agreementFile;
@@ -47,6 +48,7 @@ for (const file of files) {
   assert.equal($('style,[style],[onclick],script:not([src])').length,0,`${file}: no inline styling or scripts`);
   const policy = $('meta[http-equiv="Content-Security-Policy"]').attr('content');
   assert(policy.includes("form-action 'none'"));
+  const connect = policy.split(';').find(directive => directive.startsWith('connect-src '));
   assert($('title').text().includes('NamibOne'));
   assert($('meta[name="description"]').attr('content'));
   assert($('a.skip-link[href="#main"]').length);
@@ -59,12 +61,16 @@ for (const file of files) {
     assert.equal(form.length, 1, 'The agreement requires a dedicated acknowledgement form');
     assert.equal(form.attr('action'), undefined, 'Acknowledgements must use the scoped form handler');
     const endpoint = form.attr('data-endpoint');
-    assert(endpoint === '' || /^https:\/\/formspree\.io\/f\/[a-z0-9_-]{5,64}$/i.test(endpoint));
-    assert.equal(policy.includes('https://formspree.io'), Boolean(endpoint), 'Only an enabled form may connect to Formspree');
+    if (endpoint) {
+      const url = new URL(endpoint);
+      assert.equal(url.protocol, 'https:');
+      assert.equal(endpoint, `${url.origin}${acknowledgementPath}`);
+      assert.equal(connect, `connect-src 'self' ${url.origin}`, 'Limit the destination to the configured handler');
+    } else assert.equal(connect, "connect-src 'self'");
     assert.equal(form.find('input[type="checkbox"][required]').length, 2, 'Both declarations must be required');
     assert.equal(form.find('input[name="signature"][required]').length, 1, 'A typed signature is required');
   } else {
-    assert(!policy.includes('https://formspree.io'), 'Formspree must be scoped to the stakeholder agreement');
+    assert.equal(connect, "connect-src 'self'", 'The submission handler is scoped to the stakeholder agreement');
     assert.equal($('input[type="email"],textarea:not(#companion-prompt)').length,0,'Prototype pages must not collect private records');
   }
   if(file==='index.html'){
