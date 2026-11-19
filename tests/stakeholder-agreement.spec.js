@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { once } from 'node:events';
 import { stakeholderAgreementPage } from '../scripts/stakeholder-agreement.mjs';
 import { layout } from '../scripts/ui.mjs';
 import { acknowledgementPath } from '../assets/stakeholder-agreement-shared.js';
+import { createStakeholderServer } from '../server/stakeholder-acknowledgements.mjs';
 
 const path = '/forms/index.html';
 const name = 'Synthetic Pilot Tester';
@@ -69,57 +71,54 @@ test('stakeholders review a signed email draft without a network submission', as
   await expect(draft).not.toHaveValue(/Advises a prospective pilot supplier/);
 });
 
-test('enabled handler preserves retry details and confirms receipt', async ({ page }) => {
-  const fixture = `https://forms.example.test${acknowledgementPath}`;
+test('enabled handler preserves retry details and confirms receipt', async ({ page, baseURL }) => {
+  const fixtureOrigin = 'https://forms.example.test';
   const received = [];
-  await page.route(`**${path}`, route => route.fulfill({
-    contentType: 'text/html',
-    body: layout(stakeholderAgreementPage(fixture)),
-  }));
-  const cors = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-  await page.route(fixture, async route => {
-    const request = route.request();
-    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
-    expect(request.method()).toBe('POST');
-    expect(request.headers().accept).toBe('application/json');
-    expect(request.headers()['content-type']).toBe('application/json');
-    const body = request.postDataJSON();
-    received.push(body);
-    const firstAttempt = received.length === 1;
-    await route.fulfill({
-      status: firstAttempt ? 503 : 200,
-      headers: cors,
-      json: firstAttempt ? { ok: false } : { ok: true, reference: body.acknowledgement_reference },
+  const server = createStakeholderServer({
+    origin: new URL(baseURL).origin,
+    sendMail: async data => {
+      const { received_at_utc, ...acknowledgement } = data;
+      expect(Number.isFinite(Date.parse(received_at_utc))).toBe(true);
+      received.push(acknowledgement);
+      if (received.length === 1) throw new Error('Simulated mail outage');
+    },
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const loopbackOrigin = `http://127.0.0.1:${server.address().port}`;
+  // Run a real cross-origin HTTP request to the loopback handler. Production
+  // configuration requires HTTPS; only this fixture substitutes loopback HTTP.
+  const html = layout(stakeholderAgreementPage(`${fixtureOrigin}${acknowledgementPath}`))
+    .replaceAll(fixtureOrigin, loopbackOrigin);
+
+  try {
+    await page.route(`**${path}`, route => route.fulfill({ contentType: 'text/html', body: html }));
+    await page.goto(path);
+    const form = await completeIdentityAndIntent(page);
+    await form.getByRole('checkbox').nth(0).check();
+    await form.getByRole('checkbox').nth(1).check();
+    await form.getByLabel(/Type your full name to sign/).fill(name);
+
+    const submit = form.getByRole('button', { name: 'Sign and submit' });
+    const status = form.getByRole('status');
+    await submit.click();
+    await expect(status).toContainText('could not confirm receipt');
+    await expect(form.getByLabel('Contact email')).toHaveValue(email);
+    await submit.click();
+    await expect(status).toContainText('mail service accepted your acknowledgement');
+    await expect(form.getByLabel('Contact email')).toHaveValue('');
+    expect(received).toHaveLength(2);
+    expect(received[1]).toEqual(received[0]);
+    expect(received[1]).toMatchObject({
+      full_name: name,
+      email,
+      intent,
+      accept_terms: 'Accepted',
+      signature: name,
+      acknowledgement_reference: expect.stringMatching(/^[0-9a-f-]{36}$/),
     });
-  });
-
-  await page.goto(path);
-  const form = await completeIdentityAndIntent(page);
-  await form.getByRole('checkbox').nth(0).check();
-  await form.getByRole('checkbox').nth(1).check();
-  await form.getByLabel(/Type your full name to sign/).fill(name);
-
-  const submit = form.getByRole('button', { name: 'Sign and submit' });
-  const status = form.getByRole('status');
-  await submit.click();
-  await expect(status).toContainText('could not confirm receipt');
-  await expect(form.getByLabel('Contact email')).toHaveValue(email);
-  await submit.click();
-  await expect(status).toContainText('mail service accepted your acknowledgement');
-  await expect(form.getByLabel('Contact email')).toHaveValue('');
-  expect(received).toHaveLength(2);
-  expect(received[1]).toEqual(received[0]);
-  expect(received[1]).toMatchObject({
-    full_name: name,
-    email,
-    intent,
-    accept_terms: 'Accepted',
-    signature: name,
-    acknowledgement_reference: expect.stringMatching(/^[0-9a-f-]{36}$/),
-  });
-  expect(received[1].organisation).toBeUndefined();
+    expect(received[1].organisation).toBeUndefined();
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
 });
