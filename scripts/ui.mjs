@@ -14,7 +14,8 @@ export const quick=(title,desc,url,i,tone='')=>`<a class="quick-card" href="${ur
 export const metric=(label,value,sub,i,id='')=>`<div class="panel metric"><div class="metric-label">${label}${icon(i)}</div><strong${id?` id="${id}"`:''}>${value}</strong><small>${sub}</small></div>`;
 export const noticeList=()=>`<div class="panel flush">${notices.map(n=>`<a class="list-row notice-row" href="/notice-${n.id}.html"><span class="icon-box blue">${icon('bell')}</span><div>${badge(n.tag)}<h3>${n.title}</h3><p>${n.summary}</p></div><div class="trailing">${n.date}<br>Read notice →</div></a>`).join('')}</div>`;
 export const walletHomeUrl = 'https://n1wallet.net/';
-const publicNav=[['Home','/','home'],['Services','/services.html','grid'],['AI Companion','/#companion','message'],['Government services','/departments.html','building'],['N1 Wallet',walletHomeUrl,'wallet'],['Discover','/notices.html','pin'],['Help & guidance','/help.html','help']];
+const docsHomeUrl = 'https://namibone.com/docs/';
+const publicNav=[['Home','/','home'],['Services','/services.html','grid'],['AI Companion','/#companion','message'],['Government services','/departments.html','building'],['N1 Wallet',walletHomeUrl,'wallet'],['Get started',docsHomeUrl,'help'],['Discover','/notices.html','pin'],['Help & guidance','/help.html','help']];
 const citizenNav=[['Dashboard','/citizen-dashboard.html','grid'],['My applications','/citizen-applications.html','file'],['Messages','/citizen-messages.html','message'],['Payments','/payments.html','wallet'],['Sample profile','/citizen-profile.html','identity']];
 const staffNav=[['Operations','/staff-dashboard.html','grid'],['Case queue','/staff-cases.html','file'],['Communications','/staff-communications.html','message'],['Analytics','/staff-analytics.html','chart']];
 const links=(list,active)=>list.map(([label,path,i])=>`<a href="${path}"${active===path?' aria-current="page"':''}>${icon(i)}${label}</a>`).join('');

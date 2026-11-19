@@ -1,0 +1,36 @@
+---
+title: Get started with NamibOne
+description: Step-by-step guides for residents, pilot staff and anyone exploring the N1 Wallet preview.
+template: splash
+hero:
+  tagline: Find a service, follow a sample request, or explore the N1 Wallet preview. Choose the guide that matches what you want to do.
+  image:
+    file: ../../assets/namib-coast.webp
+    alt: ''
+  actions:
+    - text: Choose a guide
+      link: '#choose-a-guide'
+      icon: down-arrow
+    - text: About the pilot
+      link: './pilot/'
+      variant: minimal
+      icon: right-arrow
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Choose a guide
+
+<CardGrid>
+  <LinkCard title="Citizens" href="./citizens/" description="Find a service and follow a sample request from start to finish." />
+  <LinkCard title="Pilot staff" href="./staff/" description="Update a sample case and confirm what appears in the citizen view." />
+  <LinkCard title="N1 Wallet" href="./n1-wallet/" description="Read the demo balance and activity, and try a preview action." />
+</CardGrid>
+
+## Project reference
+
+<CardGrid>
+  <LinkCard title="Developer setup" href="./developers/" description="Run the projects locally and find the integration documentation." />
+  <LinkCard title="Help and troubleshooting" href="./help/" description="Find a missing sample request or report an unclear guide." />
+  <LinkCard title="Release notes" href="./releases/" description="See what has changed in the documentation." />
+</CardGrid>
