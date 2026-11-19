@@ -34,4 +34,9 @@ Set `NAMIBONE_GRAPH_TENANT_ID`, `NAMIBONE_GRAPH_CLIENT_ID`, `NAMIBONE_GRAPH_CLIE
 
 After the handler is reachable, set `configuredEndpoint` in `scripts/stakeholder-agreement.mjs` to its full HTTPS URL including `/api/stakeholder-acknowledgements`, and deploy the site. Send a labelled synthetic acknowledgement from the live page and verify receipt in the project inbox before circulating the URL for real submissions.
 
+### Managed alternatives
+
+- A project-owned [Google Apps Script web app](https://developers.google.com/apps-script/guides/web) can receive the site's native form POST through `doPost` and use [MailApp](https://developers.google.com/apps-script/reference/mail/mail-app) to email the complete acknowledgement. The deployment account needs to authorise email sending and allow the intended respondents. The page would use the script's HTTPS endpoint as its form action and the script would return the receipt page.
+- Microsoft 365 can embed a Microsoft Form below the agreement. A [Power Automate flow](https://learn.microsoft.com/en-us/power-automate/forms/popular-scenarios#send-an-email-when-theres-a-new-form-response) can retrieve each response and email the selected fields to `raydo@skunkworks.africa`. Check whether the tenant allows external stakeholders to respond.
+
 Treat each terms release as a fixed version. Update the displayed and submitted version and date together when amending the agreement, and keep the corresponding release commit so the accepted wording can be recovered.
