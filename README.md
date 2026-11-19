@@ -2,7 +2,7 @@
 
 Live at **https://namibone.com**, hosted by GitHub Pages from this repository. Original history, custom domain and HTTPS are preserved.
 
-The companion-first prototype contains **48 navigable pages**: a public service catalogue, eight service details, six department previews, public notices and guidance, citizen applications/messages/profile, department operations/casework/communications/analytics, and sample balances/payment review/history/receipts. The [stakeholder agreement](https://namibone.com/forms/index.html) covers pilot participation and includes a signed acknowledgement form.
+The companion-first prototype contains **49 navigable pages**: a public service catalogue, eight service details, six department previews, public notices and guidance, citizen applications/messages/profile, department operations/casework/communications/analytics, and sample balances/payment review/history/receipts. The [stakeholder agreement](https://namibone.com/forms/index.html) covers pilot participation and includes a signed acknowledgement form.
 
 All records, department groupings, requirements, metrics and fees are illustrative. There is no verified government affiliation. Citizen and staff workspaces are **public demonstrations, not authenticated or privileged portals**. Google, Microsoft and GitHub sign-in remain disabled. The sample workspaces do not submit real applications, messages, public announcements or payments.
 
@@ -27,7 +27,11 @@ npm run dev
 
 Requires Node.js 24. Preview: `http://127.0.0.1:4173`. The build writes only generated output to `dist/`. `scripts/pages.mjs` defines route content; `scripts/ui.mjs` supplies the shared shell and components. Browser interactions and synthetic records are in `assets/app.js` and `assets/data.js`.
 
-The quality gate checks every page, all internal links, brand tokens, accessibility structure, sample/identity disclosures, the prototype and agreement size budgets, and the actual service worker's public/private boundary. Playwright tests all 48 routes and end-to-end sample workflows in Chromium, Firefox and WebKit. Screenshots are retained in CI artifacts. Main requires `Design and browser gate`, including administrators; the Pages deployment depends on that successful job. No legacy branch publisher bypasses the gate.
+The quality gate checks every page, all internal links, brand tokens, accessibility structure, sample/identity disclosures, the prototype and agreement size budgets, and the actual service worker's public/private boundary. Playwright tests all 49 routes and end-to-end sample workflows in Chromium, Firefox and WebKit. Screenshots are retained in CI artifacts. Main requires `Design and browser gate`, including administrators; the Pages deployment depends on that successful job. No legacy branch publisher bypasses the gate.
+
+## Project status and development reports
+
+The [project status page](https://namibone.com/status/index.html) shows the public NamibOne and N1 Wallet work register. Update the verification date, work records and evidence links together in `assets/project-status-data.js`. The site build generates the status page and its Markdown and PDF reports from that register. Use a confirmed deadline and owner when available. An empty field highlights an open assignment or scheduling gap.
 
 ## Try the journeys
 

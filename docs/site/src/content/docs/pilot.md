@@ -19,3 +19,5 @@ Use preset values throughout the demo. Keep identity documents, passwords, accou
 These guides are available in English. Namibian-language editions can be added as each guide is translated and reviewed against the same pilot task.
 
 [Read the project scope](https://namibone.com/about.html) or [choose a guide](../#choose-a-guide).
+
+[View project status and development reports](https://namibone.com/status/index.html).
