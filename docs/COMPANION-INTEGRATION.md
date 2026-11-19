@@ -30,7 +30,7 @@ Before enabling the attribute, verify the actual backend's authentication or ano
 
 ## Voice and privacy
 
-Browser dictation is available only when SpeechRecognition or webkitSpeechRecognition exists. It starts on click, shows listening/error/stopped state, stops on leaving the page, and fills the editable input without sending. Browser speech processing may use the browser vendor's service. It is English (`en-ZA`) in this release. No recording or voice data is stored by this application. Unsupported browsers retain the typed interface with a clearly labelled unavailable microphone button.
+Browser dictation uses SpeechRecognition or webkitSpeechRecognition. It starts on click, shows when the service is ready, and fills the editable input for review. The Stop button lets the speech service finish processing. Leaving the page cancels the session. Dictation uses English (`en-ZA`) in this release and may use the browser vendor's speech service. The application stores no recordings or voice data. In browsers without the speech API, the microphone button focuses the question box for keyboard dictation. When the browser speech service fails, the interface explains the failure and points to keyboard dictation.
 
 Typed conversation history is held only in memory and clears on reload or New conversation. It does not enter session/local storage, service-worker caches, query strings or analytics. Preset citizen/staff sample state uses the existing separate tab-local storage path. No live identity, banking or government integration is introduced.
 

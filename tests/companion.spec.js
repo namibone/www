@@ -139,38 +139,68 @@ test.describe('companion landing',()=>{
   expect(moving).toBe(false);
  });
 
- test('unsupported dictation offers typing and never requests a microphone',async({page})=>{
+ test('unsupported browser dictation opens the question box for keyboard dictation',async({page})=>{
   await page.addInitScript(()=>{
    Object.defineProperty(window,'SpeechRecognition',{value:undefined,configurable:true});
    Object.defineProperty(window,'webkitSpeechRecognition',{value:undefined,configurable:true});
   });
   await page.goto('/');
-  await expect(page.locator('#companion-voice')).toBeDisabled();
-  await expect(page.locator('#companion-voice')).toHaveAttribute('aria-label','Voice input unavailable in this browser');
-  await expect(page.locator('#companion-prompt')).toBeEnabled();
+  await page.getByRole('button',{name:'Use keyboard dictation'}).click();
+  await expect(page.locator('#companion-prompt')).toBeFocused();
+  await expect(page.locator('#companion-status')).toContainText('microphone on your keyboard');
  });
 
- test('dictation starts only on click and requires a separate send',async({page})=>{
+ test('dictation waits for a click, finishes on Stop and requires a separate send',async({page})=>{
   await page.addInitScript(()=>{
    class FakeSpeechRecognition{
     constructor(){window.testRecognition=this;}
     start(){window.testSpeechStarts=(window.testSpeechStarts||0)+1;}
+    stop(){window.testSpeechStops=(window.testSpeechStops||0)+1;}
     abort(){window.testSpeechAborts=(window.testSpeechAborts||0)+1;}
    }
    Object.defineProperty(window,'SpeechRecognition',{value:FakeSpeechRecognition,configurable:true});
   });
   await page.goto('/');
+  const voice=page.locator('#companion-voice');
+  const status=page.locator('#companion-status');
+  await page.locator('#companion-prompt').fill('Please');
   expect(await page.evaluate(()=>window.testSpeechStarts||0)).toBe(0);
-  await page.locator('#companion-voice').click();
+  await voice.click();
   expect(await page.evaluate(()=>window.testSpeechStarts)).toBe(1);
+  await expect(status).toContainText('Starting dictation');
+  await page.evaluate(()=>window.testRecognition.onstart());
+  await expect(status).toContainText('Listening');
+  await voice.click();
+  expect(await page.evaluate(()=>window.testSpeechStops)).toBe(1);
+  await expect(status).toContainText('Finishing dictation');
   await page.evaluate(()=>{
-   const result=Object.assign([{transcript:'Find learning support'}],{isFinal:true});
+   const result=Object.assign([{transcript:'find learning support'}],{isFinal:true});
    window.testRecognition.onresult({results:[result]});
    window.testRecognition.onend();
   });
-  await expect(page.locator('#companion-prompt')).toHaveValue('Find learning support');
+  expect(await page.evaluate(()=>window.testSpeechAborts||0)).toBe(0);
+  await expect(voice).toHaveAttribute('aria-pressed','false');
+  await expect(page.locator('#companion-prompt')).toHaveValue('Please find learning support');
   await expect(page.locator('#companion-messages .user')).toHaveCount(0);
-  await expect(page.locator('#companion-status')).toContainText('Review your question');
+  await expect(status).toContainText('Review your question');
+ });
+
+ test('a browser speech service failure keeps typed text and explains the keyboard option',async({page})=>{
+  await page.addInitScript(()=>{
+   class UnavailableSpeechRecognition {
+    start(){this.onerror({error:'service-not-allowed'});}
+    abort(){}
+   }
+   Object.defineProperty(window,'SpeechRecognition',{value:undefined,configurable:true});
+   Object.defineProperty(window,'webkitSpeechRecognition',{value:UnavailableSpeechRecognition,configurable:true});
+  });
+  await page.goto('/');
+  await page.locator('#companion-prompt').fill('Renew my ID');
+  await page.getByLabel('Dictate your question').click();
+  await expect(page.locator('#companion-status')).toContainText('could not start its speech service');
+  await expect(page.locator('#companion-status')).toContainText('microphone on your keyboard');
+  await expect(page.locator('#companion-prompt')).toHaveValue('Renew my ID');
+  await expect(page.locator('#companion-messages .user')).toHaveCount(0);
  });
 
  test('artwork, title, topic bubbles and composer follow the homepage reference',async({page},info)=>{
