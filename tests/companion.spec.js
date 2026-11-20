@@ -255,7 +255,45 @@ test.describe('companion landing',()=>{
   await expect(wallet).toHaveAttribute('href','https://n1wallet.net/portal.html');
  });
 
- test('first arrival keeps the prompt visible on mobile and desktop',async({page},info)=>{
+ test('wide desktop has a sharp edge-to-edge background without changing mobile composition',async({page})=>{
+  await page.setViewportSize({width:1600,height:950});
+  await page.goto('/');
+  const stage=page.locator('.companion-stage');
+  const desktop=await stage.evaluate(el=>{
+    const image=getComputedStyle(el,'::before');
+    const artwork=getComputedStyle(el.querySelector('.companion-art'));
+    return {
+      width:el.getBoundingClientRect().width,
+      background:image.backgroundImage,
+      filter:image.filter,
+      mask:artwork.maskImage
+    };
+  });
+  expect(desktop.width).toBe(1600);
+  expect(desktop.background).toContain('namib-companion-scene.webp');
+  expect(desktop.filter).toBe('none');
+  expect(desktop.mask).toContain('linear-gradient');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+
+  await page.setViewportSize({width:390,height:844});
+  await page.reload();
+  const mobile=await stage.evaluate(el=>{
+    const before=getComputedStyle(el,'::before');
+    const artwork=el.querySelector('.companion-art').getBoundingClientRect();
+    return {
+      backdropDisplay:before.display,
+      artWidth:artwork.width,
+      artHeight:artwork.height,
+      grid:getComputedStyle(el.querySelector('.companion-scene')).display
+    };
+  });
+  expect(mobile.backdropDisplay).toBe('none');
+  expect(mobile.grid).toBe('grid');
+  expect(Math.abs(mobile.artWidth-mobile.artHeight)).toBeLessThan(2);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test('first arrival keeps the prompt visible on mobile and desktop',async({page},info)=>{
   for(const viewport of [{width:320,height:780},{width:390,height:844},{width:1440,height:1000}]){
    await page.setViewportSize(viewport);
    await page.goto('/');
