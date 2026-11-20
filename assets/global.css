@@ -65,6 +65,25 @@
   .companion-art { mask-image:linear-gradient(90deg,var(--color-clear),var(--color-white) 4%,var(--color-white) 96%,var(--color-clear)); }
 }
 
+
+/* Wide-screen only: extend the actual Namibian landscape edge-to-edge.
+   The square illustrated companion remains the sharp focal layer, with a
+   soft horizontal seam instead of the previous 40px blurred side-fill.
+   The mobile grid and image composition are deliberately untouched. */
+@media (min-width: 701px) {
+  .companion-stage {
+    overflow:clip;
+  }
+  .companion-stage::before {
+    background:url('/assets/namib-companion-scene.webp') center 48% / cover no-repeat;
+    filter:none;
+  }
+  .companion-art {
+    -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 9%,#000 91%,transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0%,#000 9%,#000 91%,transparent 100%);
+  }
+}
+
 .companion-heading {
   position:absolute; inset:5.55% 3.65% auto auto; text-align:right;
   display:grid; justify-items:end;
